@@ -96,23 +96,40 @@ const Dashboard = () => {
 
       <div className="pt-20 px-4 pb-12">
         <div className="container mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 pt-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome back! Here's an overview of your hosting services.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Link to="/dashboard/hosting">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Website
-                </Button>
-              </Link>
-            </div>
-          </div>
+          {/* Welcome Banner */}
+          <Card className="bg-gradient-speed border-none shadow-glow mt-8">
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                    <Zap className="w-10 h-10 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-primary-foreground mb-2">
+                      Welcome back to CheetiHost! 🚀
+                    </h2>
+                    <p className="text-primary-foreground/90 text-lg">
+                      Your hosting is running smoothly. Ready to launch something new?
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Link to="/dashboard/hosting">
+                    <Button size="lg" variant="secondary" className="gap-2">
+                      <Plus className="h-5 w-5" />
+                      New Website
+                    </Button>
+                  </Link>
+                  <Link to="/dashboard/cloud">
+                    <Button size="lg" variant="secondary" className="gap-2">
+                      <Cloud className="h-5 w-5" />
+                      Deploy Cloud
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
