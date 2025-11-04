@@ -92,9 +92,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-
-      <div className="pt-20 px-4 pb-12">
+      <div className="px-4 py-8">
         <div className="container mx-auto space-y-8">
           {/* Welcome Banner */}
           <Card className="bg-gradient-speed border-none shadow-glow mt-8">

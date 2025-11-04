@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/DashboardSidebar";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Pricing from "./pages/Pricing";
@@ -10,9 +12,23 @@ import Hosting from "./pages/Hosting";
 import Cloud from "./pages/Cloud";
 import Domains from "./pages/Domains";
 import Email from "./pages/Email";
+import WebsiteBuilder from "./pages/WebsiteBuilder";
+import Billing from "./pages/Billing";
+import Settings from "./pages/Settings";
+import Support from "./pages/Support";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="flex min-h-screen w-full">
+      <DashboardSidebar />
+      <main className="flex-1">{children}</main>
+    </div>
+  </SidebarProvider>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,13 +38,17 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/hosting" element={<Hosting />} />
-          <Route path="/cloud" element={<Cloud />} />
-          <Route path="/domains" element={<Domains />} />
-          <Route path="/email" element={<Email />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+          <Route path="/dashboard/hosting" element={<DashboardLayout><Hosting /></DashboardLayout>} />
+          <Route path="/dashboard/cloud" element={<DashboardLayout><Cloud /></DashboardLayout>} />
+          <Route path="/dashboard/domains" element={<DashboardLayout><Domains /></DashboardLayout>} />
+          <Route path="/dashboard/email" element={<DashboardLayout><Email /></DashboardLayout>} />
+          <Route path="/dashboard/builder" element={<DashboardLayout><WebsiteBuilder /></DashboardLayout>} />
+          <Route path="/dashboard/billing" element={<DashboardLayout><Billing /></DashboardLayout>} />
+          <Route path="/dashboard/notifications" element={<DashboardLayout><Notifications /></DashboardLayout>} />
+          <Route path="/dashboard/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+          <Route path="/dashboard/support" element={<DashboardLayout><Support /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
