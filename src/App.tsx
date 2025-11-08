@@ -18,12 +18,18 @@ import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
 import Notifications from "./pages/Notifications";
+import Security from "./pages/Security";
+import Unbox from "./pages/Unbox";
+import { CommandPalette } from "./components/CommandPalette";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UsersManagement from "./pages/admin/UsersManagement";
 import HostingManagement from "./pages/admin/HostingManagement";
 import DomainsManagement from "./pages/admin/DomainsManagement";
 import BillingManagement from "./pages/admin/BillingManagement";
+import SecurityManagement from "./pages/admin/SecurityManagement";
+import EmailManagement from "./pages/admin/EmailManagement";
+import CloudManagement from "./pages/admin/CloudManagement";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +59,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <CommandPalette />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/pricing" element={<Pricing />} />
@@ -66,6 +73,8 @@ const App = () => (
           <Route path="/dashboard/notifications" element={<DashboardLayout><Notifications /></DashboardLayout>} />
           <Route path="/dashboard/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
           <Route path="/dashboard/support" element={<DashboardLayout><Support /></DashboardLayout>} />
+          <Route path="/dashboard/security" element={<DashboardLayout><Security /></DashboardLayout>} />
+          <Route path="/dashboard/unbox" element={<DashboardLayout><Unbox /></DashboardLayout>} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
@@ -73,6 +82,9 @@ const App = () => (
           <Route path="/admin/hosting" element={<AdminLayout><HostingManagement /></AdminLayout>} />
           <Route path="/admin/domains" element={<AdminLayout><DomainsManagement /></AdminLayout>} />
           <Route path="/admin/billing" element={<AdminLayout><BillingManagement /></AdminLayout>} />
+          <Route path="/admin/security" element={<AdminLayout><SecurityManagement /></AdminLayout>} />
+          <Route path="/admin/email" element={<AdminLayout><EmailManagement /></AdminLayout>} />
+          <Route path="/admin/cloud" element={<AdminLayout><CloudManagement /></AdminLayout>} />
           <Route path="/admin/settings" element={<AdminLayout><Settings /></AdminLayout>} />
           
           <Route path="*" element={<NotFound />} />

@@ -7,7 +7,10 @@ import {
   Globe, 
   DollarSign, 
   Settings,
-  LogOut
+  LogOut,
+  Shield,
+  Mail,
+  Cloud
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -17,7 +20,10 @@ const AdminSidebar = () => {
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Users, label: "Users", path: "/admin/users" },
     { icon: Server, label: "Hosting", path: "/admin/hosting" },
+    { icon: Cloud, label: "Cloud", path: "/admin/cloud" },
     { icon: Globe, label: "Domains", path: "/admin/domains" },
+    { icon: Mail, label: "Email", path: "/admin/email" },
+    { icon: Shield, label: "Security", path: "/admin/security" },
     { icon: DollarSign, label: "Billing", path: "/admin/billing" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];

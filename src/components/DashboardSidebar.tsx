@@ -12,6 +12,8 @@ import {
   HelpCircle,
   ChevronRight,
   Zap,
+  Shield,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +38,8 @@ const mainMenuItems = [
   { title: "Domains", url: "/dashboard/domains", icon: Globe },
   { title: "Email", url: "/dashboard/email", icon: Mail },
   { title: "Website Builder", url: "/dashboard/builder", icon: Layout },
+  { title: "Security Center", url: "/dashboard/security", icon: Shield },
+  { title: "Unbox", url: "/dashboard/unbox", icon: Package },
 ];
 
 const accountItems = [
