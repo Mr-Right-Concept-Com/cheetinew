@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import AdminSidebar from "./components/AdminSidebar";
+import { CheetiAI } from "./components/CheetiAI";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Pricing from "./pages/Pricing";
@@ -60,6 +61,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <CommandPalette />
+        <CheetiAI />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/pricing" element={<Pricing />} />
