@@ -34,11 +34,11 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-bold mb-2">Help & Support</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 truncate">Help & Support</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Get help from our knowledge base or contact our support team
           </p>
         </div>
@@ -65,16 +65,16 @@ const Support = () => {
         </Card>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <MessageSquare className="h-6 w-6 text-primary" />
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="p-2 md:p-3 rounded-lg bg-primary/10">
+                  <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">3</p>
-                  <p className="text-sm text-muted-foreground">Open Tickets</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl md:text-2xl font-bold truncate">3</p>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">Open Tickets</p>
                 </div>
               </div>
             </CardContent>

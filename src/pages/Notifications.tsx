@@ -115,38 +115,40 @@ const Notifications = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Notifications</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 truncate">Notifications</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Stay updated with your services and activities
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
+          <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
+            <Button variant="outline" className="gap-2 flex-1 sm:flex-none" size="sm">
               <CheckCircle className="h-4 w-4" />
-              Mark All Read
+              <span className="hidden sm:inline">Mark All Read</span>
+              <span className="sm:hidden">Read</span>
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2 flex-1 sm:flex-none" size="sm">
               <Trash2 className="h-4 w-4" />
-              Clear All
+              <span className="hidden sm:inline">Clear All</span>
+              <span className="sm:hidden">Clear</span>
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Bell className="h-6 w-6 text-primary" />
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="p-2 md:p-3 rounded-lg bg-primary/10">
+                  <Bell className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{unreadCount}</p>
-                  <p className="text-sm text-muted-foreground">Unread</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl md:text-2xl font-bold truncate">{unreadCount}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">Unread</p>
                 </div>
               </div>
             </CardContent>
