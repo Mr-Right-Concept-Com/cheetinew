@@ -43,7 +43,7 @@ const Dashboard = () => {
       value: "99.98%",
       change: "Last 30 days",
       icon: Activity,
-      color: "text-green-500",
+      color: "text-primary",
     },
   ];
 
@@ -176,8 +176,8 @@ const Dashboard = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="font-semibold text-base md:text-lg truncate">{site.name}</h4>
-                        <div className="flex items-center space-x-2 text-xs md:text-sm text-muted-foreground">
-                          <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                       <div className="flex items-center space-x-2 text-xs md:text-sm text-muted-foreground">
+                          <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-pulse" />
                           <span className="truncate">{site.status}</span>
                         </div>
                       </div>
@@ -232,8 +232,8 @@ const Dashboard = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="font-semibold text-base md:text-lg truncate">{instance.name}</h4>
-                        <div className="flex items-center space-x-2 text-xs md:text-sm text-muted-foreground flex-wrap">
-                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+                       <div className="flex items-center space-x-2 text-xs md:text-sm text-muted-foreground flex-wrap">
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse flex-shrink-0" />
                           <span className="truncate">{instance.status}</span>
                           <span className="flex-shrink-0">•</span>
                           <span className="truncate">{instance.region}</span>

@@ -165,7 +165,7 @@ const Settings = () => {
                     <h4 className="font-semibold">Chrome on MacBook Pro</h4>
                     <p className="text-sm text-muted-foreground">San Francisco, USA • Active now</p>
                   </div>
-                  <Badge className="bg-green-500/10 text-green-500 border-none">Current</Badge>
+                  <Badge className="bg-primary/10 text-primary border-none">Current</Badge>
                 </div>
                 <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50">
                   <div>
