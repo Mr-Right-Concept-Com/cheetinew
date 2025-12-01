@@ -96,8 +96,8 @@ const Billing = () => {
           <Card className="bg-card/50 backdrop-blur">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-green-500/10">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">100%</p>
@@ -211,7 +211,7 @@ const Billing = () => {
                         </div>
                         <Badge
                           variant={invoice.status === "paid" ? "default" : "secondary"}
-                          className={invoice.status === "paid" ? "bg-green-500/10 text-green-500 border-none" : ""}
+                          className={invoice.status === "paid" ? "bg-primary/10 text-primary border-none" : ""}
                         >
                           {invoice.status}
                         </Badge>
