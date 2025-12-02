@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,45 +7,69 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Lock, AlertCircle, Chrome, Github } from "lucide-react";
+import { Mail, Lock, AlertCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import logoFull from "@/assets/logo-full.png";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login, user, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/dashboard");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Basic validation
     if (!email || !password) {
       setError("Please fill in all fields");
       setIsLoading(false);
       return;
     }
 
-    // Simulate login - Replace with actual authentication
-    setTimeout(() => {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to CheetiHost!",
-      });
-      navigate("/dashboard");
+    const { error: loginError } = await login(email, password);
+
+    if (loginError) {
+      setError(loginError.message || "Invalid credentials. Please try again.");
       setIsLoading(false);
-    }, 1000);
+      return;
+    }
+
+    toast({
+      title: "Login Successful",
+      description: "Welcome back to CheetiHost!",
+    });
+    setIsLoading(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-card/80 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
+          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 mx-auto">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
           <div className="flex justify-center mb-4">
             <img src={logoFull} alt="CheetiHost" className="h-12" />
           </div>
@@ -128,26 +152,15 @@ const Login = () => {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                Or continue with
+                New to CheetiHost?
               </span>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="w-full" disabled={isLoading}>
-              <Chrome className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button variant="outline" className="w-full" disabled={isLoading}>
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
           </div>
 
           <div className="text-center text-sm">
             Don't have an account?{" "}
             <Link to="/auth/signup" className="text-primary hover:underline font-semibold">
-              Sign up
+              Sign up for free
             </Link>
           </div>
         </CardContent>

@@ -1,94 +1,417 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Shield, Cloud, Smartphone, Database, Lock, RefreshCw } from "lucide-react";
-import { Navigation } from "@/components/Navigation";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Mail,
+  Plus,
+  Search,
+  Inbox,
+  Send,
+  Trash2,
+  Star,
+  Shield,
+  Settings,
+  RefreshCw,
+  MoreVertical,
+  Forward,
+  Filter,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 const Email = () => {
-  const features = [
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const mailboxes = [
     {
-      icon: Mail,
-      title: "Professional Email",
-      description: "Custom domain email addresses for your business",
+      id: 1,
+      email: "info@myapp.com",
+      domain: "myapp.com",
+      storage: "2.4 GB / 10 GB",
+      messages: 1247,
+      status: "active",
     },
     {
-      icon: Shield,
-      title: "Advanced Anti-Spam",
-      description: "AI-powered spam filtering with 99.9% accuracy",
-      badge: "AI-Powered"
+      id: 2,
+      email: "support@myapp.com",
+      domain: "myapp.com",
+      storage: "890 MB / 10 GB",
+      messages: 456,
+      status: "active",
     },
     {
-      icon: Cloud,
-      title: "Cloud Storage",
-      description: "Up to 100GB storage for emails and attachments",
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile Access",
-      description: "Access your email anywhere with mobile apps",
-    },
-    {
-      icon: Lock,
-      title: "Security Updates",
-      description: "Automatic security patches and encryption",
-    },
-    {
-      icon: RefreshCw,
-      title: "Easy Migration",
-      description: "Migrate from any provider with one-click tool",
-      badge: "New"
-    },
-    {
-      icon: Database,
-      title: "Auto Backup",
-      description: "Daily backups with instant restore capability",
+      id: 3,
+      email: "hello@portfolio.dev",
+      domain: "portfolio.dev",
+      storage: "1.2 GB / 5 GB",
+      messages: 234,
+      status: "active",
     },
   ];
 
+  const recentEmails = [
+    {
+      id: 1,
+      from: "john@client.com",
+      subject: "Project Update Required",
+      preview: "Hi, I wanted to follow up on the project timeline...",
+      time: "10:30 AM",
+      unread: true,
+      starred: true,
+    },
+    {
+      id: 2,
+      from: "billing@stripe.com",
+      subject: "Your Invoice #12345",
+      preview: "Your payment of $99.00 has been processed successfully...",
+      time: "9:15 AM",
+      unread: true,
+      starred: false,
+    },
+    {
+      id: 3,
+      from: "newsletter@dev.to",
+      subject: "Weekly Developer Digest",
+      preview: "Top articles from this week: React 19 features...",
+      time: "Yesterday",
+      unread: false,
+      starred: false,
+    },
+    {
+      id: 4,
+      from: "support@github.com",
+      subject: "Security Alert: New sign-in",
+      preview: "A new sign-in was detected on your account from...",
+      time: "Yesterday",
+      unread: false,
+      starred: true,
+    },
+  ];
+
+  const handleCreateMailbox = () => {
+    toast({
+      title: "Mailbox Created",
+      description: "Your new email mailbox has been created successfully.",
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      <Navigation />
-
-      <div className="pt-32 pb-20 px-4">
-        <div className="container mx-auto space-y-16">
-          <div className="text-center space-y-6 max-w-3xl mx-auto animate-fade-in-up">
-            <h1 className="text-5xl lg:text-6xl font-bold">
-              Professional <span className="text-primary">Email Hosting</span>
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Secure, reliable email hosting with your custom domain
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Email Management</h1>
+            <p className="text-muted-foreground">
+              Manage your professional email accounts and mailboxes
             </p>
-            <Link to="/pricing">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow">
-                Get Started
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-speed text-primary-foreground shadow-glow gap-2">
+                <Plus className="h-4 w-4" />
+                Create Mailbox
               </Button>
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="bg-card/50 backdrop-blur hover:shadow-glow transition-all">
-                <CardContent className="p-6 space-y-4 text-center">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto">
-                    <feature.icon className="h-6 w-6 text-primary" />
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Mailbox</DialogTitle>
+                <DialogDescription>
+                  Set up a new professional email address
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Email Address</Label>
+                  <div className="flex gap-2">
+                    <Input placeholder="username" className="flex-1" />
+                    <span className="flex items-center text-muted-foreground">@</span>
+                    <Input placeholder="domain.com" className="flex-1" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <h3 className="font-semibold text-lg">{feature.title}</h3>
-                      {feature.badge && (
-                        <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                          {feature.badge}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Password</Label>
+                  <Input type="password" placeholder="Set a secure password" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Storage Quota</Label>
+                  <Input type="number" placeholder="10" defaultValue="10" />
+                  <p className="text-xs text-muted-foreground">Storage in GB</p>
+                </div>
+                <Button onClick={handleCreateMailbox} className="w-full">
+                  Create Mailbox
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <Card className="bg-card/50 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold truncate">3</p>
+                  <p className="text-sm text-muted-foreground truncate">Active Mailboxes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-accent/10">
+                  <Inbox className="h-6 w-6 text-accent" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold truncate">1,937</p>
+                  <p className="text-sm text-muted-foreground truncate">Total Messages</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold truncate">245</p>
+                  <p className="text-sm text-muted-foreground truncate">Blocked Spam</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-accent/10">
+                  <Send className="h-6 w-6 text-accent" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-bold truncate">89</p>
+                  <p className="text-sm text-muted-foreground truncate">Sent Today</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs defaultValue="mailboxes" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="mailboxes">Mailboxes</TabsTrigger>
+            <TabsTrigger value="inbox">Inbox</TabsTrigger>
+            <TabsTrigger value="forwarding">Forwarding</TabsTrigger>
+            <TabsTrigger value="spam">Spam Rules</TabsTrigger>
+          </TabsList>
+
+          {/* Mailboxes Tab */}
+          <TabsContent value="mailboxes" className="space-y-6">
+            <Card className="bg-card/50 backdrop-blur">
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <CardTitle>Your Mailboxes</CardTitle>
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search mailboxes..."
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mailboxes.map((mailbox) => (
+                    <div
+                      key={mailbox.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-all bg-background/50 gap-4"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="p-3 rounded-lg bg-primary/10 flex-shrink-0">
+                          <Mail className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-semibold truncate">{mailbox.email}</h4>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {mailbox.messages} messages • {mailbox.storage}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-500/10 text-green-500 border-green-500/20 whitespace-nowrap"
+                        >
+                          {mailbox.status}
+                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover">
+                            <DropdownMenuItem>
+                              <Settings className="mr-2 h-4 w-4" />
+                              Settings
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Forward className="mr-2 h-4 w-4" />
+                              Setup Forwarding
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Filter className="mr-2 h-4 w-4" />
+                              Spam Rules
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Inbox Tab */}
+          <TabsContent value="inbox" className="space-y-6">
+            <Card className="bg-card/50 backdrop-blur">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Recent Emails</CardTitle>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {recentEmails.map((email) => (
+                    <div
+                      key={email.id}
+                      className={`flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer hover:border-primary/50 ${
+                        email.unread ? "bg-primary/5 border-primary/20" : "border-border bg-background/50"
+                      }`}
+                    >
+                      <Button variant="ghost" size="icon" className="flex-shrink-0 mt-1">
+                        <Star
+                          className={`h-4 w-4 ${
+                            email.starred ? "fill-primary text-primary" : "text-muted-foreground"
+                          }`}
+                        />
+                      </Button>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`font-medium truncate ${email.unread ? "text-foreground" : "text-muted-foreground"}`}>
+                            {email.from}
+                          </p>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{email.time}</span>
+                        </div>
+                        <p className={`text-sm truncate ${email.unread ? "font-medium" : ""}`}>
+                          {email.subject}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">{email.preview}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Forwarding Tab */}
+          <TabsContent value="forwarding">
+            <Card className="bg-card/50 backdrop-blur">
+              <CardHeader>
+                <CardTitle>Email Forwarding</CardTitle>
+                <CardDescription>
+                  Set up email forwarding rules for your mailboxes
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 rounded-lg border border-dashed border-border text-center">
+                  <Forward className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">No forwarding rules configured</p>
+                  <Button variant="outline" className="mt-4">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Forwarding Rule
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Spam Rules Tab */}
+          <TabsContent value="spam">
+            <Card className="bg-card/50 backdrop-blur">
+              <CardHeader>
+                <CardTitle>Spam Filtering</CardTitle>
+                <CardDescription>
+                  Configure spam filtering rules and blocked senders
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+                  <div>
+                    <p className="font-medium">AI-Powered Spam Detection</p>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically detect and block spam emails
+                    </p>
+                  </div>
+                  <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                    Enabled
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+                  <div>
+                    <p className="font-medium">Blocked Senders</p>
+                    <p className="text-sm text-muted-foreground">
+                      12 senders currently blocked
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Manage
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

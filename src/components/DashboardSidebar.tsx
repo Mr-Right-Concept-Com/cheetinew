@@ -14,6 +14,7 @@ import {
   Zap,
   Shield,
   Package,
+  Database,
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import mascotCheeti from "@/assets/mascot-cheeti.png";
 
 const mainMenuItems = [
@@ -39,6 +41,7 @@ const mainMenuItems = [
   { title: "Email", url: "/dashboard/email", icon: Mail },
   { title: "Website Builder", url: "/dashboard/builder", icon: Layout },
   { title: "Security Center", url: "/dashboard/security", icon: Shield },
+  { title: "Backups", url: "/dashboard/backups", icon: Database },
   { title: "Unbox", url: "/dashboard/unbox", icon: Package },
 ];
 
@@ -56,7 +59,7 @@ export function DashboardSidebar() {
   return (
     <Sidebar className="border-r border-border/40 bg-card/30 backdrop-blur-xl">
       <SidebarHeader className="border-b border-border/40 p-4">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-full bg-gradient-speed flex items-center justify-center shadow-glow">
             <img src={mascotCheeti} alt="Cheeti" className="w-8 h-8 object-contain" />
           </div>
@@ -64,7 +67,7 @@ export function DashboardSidebar() {
             <h3 className="font-bold text-lg">CheetiHost</h3>
             <p className="text-xs text-muted-foreground">Dashboard</p>
           </div>
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent className="px-3 py-4">
@@ -89,9 +92,9 @@ export function DashboardSidebar() {
                         )
                       }
                     >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="truncate">{item.title}</span>
+                      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -120,8 +123,8 @@ export function DashboardSidebar() {
                         )
                       }
                     >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="truncate">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -147,8 +150,8 @@ export function DashboardSidebar() {
                         )
                       }
                     >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="truncate">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -159,13 +162,15 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/40 p-4">
-        <Button
-          className="w-full bg-gradient-speed text-primary-foreground shadow-glow hover:shadow-elegant transition-all gap-2"
-          size="sm"
-        >
-          <Zap className="h-4 w-4" />
-          Upgrade Plan
-        </Button>
+        <Link to="/pricing">
+          <Button
+            className="w-full bg-gradient-speed text-primary-foreground shadow-glow hover:shadow-elegant transition-all gap-2"
+            size="sm"
+          >
+            <Zap className="h-4 w-4" />
+            Upgrade Plan
+          </Button>
+        </Link>
       </SidebarFooter>
     </Sidebar>
   );
