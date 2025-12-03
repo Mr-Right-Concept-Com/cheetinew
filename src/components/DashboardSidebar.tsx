@@ -15,6 +15,7 @@ import {
   Shield,
   Package,
   Database,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import mascotCheeti from "@/assets/mascot-cheeti.png";
 
 const mainMenuItems = [
@@ -56,6 +58,8 @@ const supportItems = [
 ];
 
 export function DashboardSidebar() {
+  const { isAdmin } = useAuth();
+
   return (
     <Sidebar className="border-r border-border/40 bg-card/30 backdrop-blur-xl">
       <SidebarHeader className="border-b border-border/40 p-4">
@@ -71,6 +75,33 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-3 py-4">
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild className="hover:bg-accent/10">
+                    <NavLink
+                      to="/admin"
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all",
+                          isActive
+                            ? "bg-accent/10 text-accent font-medium shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        )
+                      }
+                    >
+                      <ShieldCheck className="h-5 w-5 flex-shrink-0" />
+                      <span className="truncate">Admin Panel</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
             Services

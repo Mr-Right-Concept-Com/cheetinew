@@ -3,8 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Sparkles } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const Pricing = () => {
+  const { user } = useAuth();
+  const dashboardLink = user ? "/dashboard" : "/auth/signup";
+
   const plans = [
     {
       name: "Starter",
@@ -124,66 +128,66 @@ const Pricing = () => {
       <Navigation />
 
       <div className="pt-32 pb-20 px-4">
-        <div className="container mx-auto space-y-20">
+        <div className="container mx-auto space-y-16 md:space-y-20">
           {/* Header */}
-          <div className="text-center space-y-6 max-w-3xl mx-auto animate-fade-in-up">
+          <div className="text-center space-y-4 md:space-y-6 max-w-3xl mx-auto animate-fade-in-up">
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-primary">Simple, Transparent Pricing</span>
             </div>
-            <h1 className="text-5xl lg:text-6xl font-bold">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
               Choose Your <span className="text-primary">Perfect Plan</span>
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-lg md:text-xl text-muted-foreground">
               Start free, scale as you grow. All plans include our core features with no hidden fees.
             </p>
           </div>
 
           {/* Web Hosting Plans */}
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Web Hosting Plans</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Web Hosting Plans</h2>
+              <p className="text-sm md:text-base text-muted-foreground">
                 Lightning-fast hosting for websites and applications
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
               {plans.map((plan, index) => (
                 <Card
                   key={index}
                   className={`relative ${
                     plan.featured
-                      ? "border-primary shadow-glow scale-105 bg-card"
+                      ? "border-primary shadow-glow md:scale-105 bg-card"
                       : "hover:border-primary/50 bg-card/50 backdrop-blur"
                   } transition-all duration-300 animate-fade-in-up`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {plan.featured && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <div className="bg-gradient-speed text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
+                      <div className="bg-gradient-speed text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap">
                         Most Popular
                       </div>
                     </div>
                   )}
-                  <CardContent className="p-8 space-y-6">
+                  <CardContent className="p-6 md:p-8 space-y-6">
                     <div>
-                      <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                      <p className="text-muted-foreground text-sm">{plan.description}</p>
+                      <h3 className="text-xl md:text-2xl font-bold mb-2">{plan.name}</h3>
+                      <p className="text-muted-foreground text-xs md:text-sm">{plan.description}</p>
                     </div>
                     <div className="flex items-baseline">
-                      <span className="text-5xl font-bold text-primary">{plan.price}</span>
+                      <span className="text-4xl md:text-5xl font-bold text-primary">{plan.price}</span>
                       <span className="text-muted-foreground ml-2">{plan.period}</span>
                     </div>
                     <ul className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start space-x-3">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{feature}</span>
+                          <Check className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-xs md:text-sm">{feature}</span>
                         </li>
                       ))}
                     </ul>
-                    <Link to="/dashboard" className="block">
+                    <Link to={dashboardLink} className="block">
                       <Button
                         className={`w-full ${
                           plan.featured
@@ -201,48 +205,48 @@ const Pricing = () => {
           </div>
 
           {/* Cloud VPS Plans */}
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Cloud VPS Plans</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Cloud VPS Plans</h2>
+              <p className="text-sm md:text-base text-muted-foreground">
                 Scalable cloud infrastructure for demanding workloads
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
               {cloudPlans.map((plan, index) => (
                 <Card
                   key={index}
                   className="hover:border-accent/50 hover:shadow-elegant transition-all bg-card/50 backdrop-blur animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <CardContent className="p-6 space-y-6">
+                  <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
                     <div>
-                      <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                      <h3 className="text-lg md:text-xl font-bold mb-2">{plan.name}</h3>
                       <div className="flex items-baseline">
-                        <span className="text-3xl font-bold text-accent">{plan.price}</span>
-                        <span className="text-muted-foreground ml-2 text-sm">{plan.period}</span>
+                        <span className="text-2xl md:text-3xl font-bold text-accent">{plan.price}</span>
+                        <span className="text-muted-foreground ml-2 text-xs md:text-sm">{plan.period}</span>
                       </div>
                     </div>
-                    <div className="space-y-3 pt-4 border-t border-border">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">CPU</span>
-                        <span className="text-sm font-semibold">{plan.specs.cpu}</span>
+                    <div className="space-y-2 md:space-y-3 pt-4 border-t border-border">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">CPU</span>
+                        <span className="font-semibold">{plan.specs.cpu}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">RAM</span>
-                        <span className="text-sm font-semibold">{plan.specs.ram}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">RAM</span>
+                        <span className="font-semibold">{plan.specs.ram}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Storage</span>
-                        <span className="text-sm font-semibold">{plan.specs.storage}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Storage</span>
+                        <span className="font-semibold">{plan.specs.storage}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Transfer</span>
-                        <span className="text-sm font-semibold">{plan.specs.bandwidth}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Transfer</span>
+                        <span className="font-semibold">{plan.specs.bandwidth}</span>
                       </div>
                     </div>
-                    <Link to="/dashboard" className="block">
+                    <Link to={dashboardLink} className="block">
                       <Button variant="outline" className="w-full">
                         Deploy Now
                       </Button>
@@ -254,10 +258,10 @@ const Pricing = () => {
           </div>
 
           {/* FAQ Section */}
-          <div className="max-w-3xl mx-auto space-y-8">
+          <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Frequently Asked Questions</h2>
-              <p className="text-muted-foreground">Everything you need to know about our pricing</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Frequently Asked Questions</h2>
+              <p className="text-sm md:text-base text-muted-foreground">Everything you need to know about our pricing</p>
             </div>
 
             <div className="space-y-4">
@@ -280,9 +284,9 @@ const Pricing = () => {
                 },
               ].map((faq, index) => (
                 <Card key={index} className="bg-card/50 backdrop-blur">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">{faq.q}</h3>
-                    <p className="text-muted-foreground text-sm">{faq.a}</p>
+                  <CardContent className="p-4 md:p-6">
+                    <h3 className="font-semibold mb-2 text-sm md:text-base">{faq.q}</h3>
+                    <p className="text-muted-foreground text-xs md:text-sm">{faq.a}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -290,20 +294,20 @@ const Pricing = () => {
           </div>
 
           {/* CTA */}
-          <div className="text-center space-y-6 pt-8">
-            <h2 className="text-3xl font-bold">Still Have Questions?</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="text-center space-y-4 md:space-y-6 pt-8">
+            <h2 className="text-2xl md:text-3xl font-bold">Still Have Questions?</h2>
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
               Our team is here to help. Reach out and we'll find the perfect solution for your needs.
             </p>
-            <div className="flex gap-4 justify-center">
-              <Link to="/contact">
-                <Button size="lg" variant="outline">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/dashboard/support">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Contact Sales
                 </Button>
               </Link>
-              <Link to="/dashboard">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow">
-                  Start Free Trial
+              <Link to={dashboardLink}>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow w-full sm:w-auto">
+                  {user ? "Go to Dashboard" : "Start Free Trial"}
                 </Button>
               </Link>
             </div>

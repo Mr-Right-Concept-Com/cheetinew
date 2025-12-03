@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Navigation } from "@/components/Navigation";
 import {
   Server,
   Cloud,
@@ -14,8 +13,11 @@ import {
   Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const { profile } = useAuth();
+  
   const stats = [
     {
       title: "Active Websites",
@@ -90,6 +92,8 @@ const Dashboard = () => {
     },
   ];
 
+  const displayName = profile?.full_name || "User";
+
   return (
     <div className="min-h-screen bg-background">
       <div className="px-4 py-8">
@@ -104,7 +108,7 @@ const Dashboard = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-primary-foreground mb-1 md:mb-2 break-words">
-                      Welcome back to CheetiHost! 🚀
+                      Welcome back, {displayName}! 🚀
                     </h2>
                     <p className="text-sm md:text-base lg:text-lg text-primary-foreground/90 break-words">
                       Your hosting is running smoothly. Ready to launch something new?
@@ -196,9 +200,11 @@ const Dashboard = () => {
                         <p className="font-semibold text-sm md:text-base truncate">{site.storage}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0 self-end md:self-center">
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                    <Link to="/dashboard/hosting">
+                      <Button variant="ghost" size="sm" className="flex-shrink-0 self-end md:self-center">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -254,9 +260,11 @@ const Dashboard = () => {
                         <p className="font-semibold text-sm md:text-base truncate">{instance.ram}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0 self-end md:self-center">
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                    <Link to="/dashboard/cloud">
+                      <Button variant="ghost" size="sm" className="flex-shrink-0 self-end md:self-center">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
                 ))}
               </div>

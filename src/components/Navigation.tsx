@@ -1,20 +1,22 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Server, Cloud, Globe, Mail, ChevronRight } from "lucide-react";
+import { Menu, X, Server, Cloud, Globe, Mail, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import logoFull from "@/assets/logo-full.png";
 
 export const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, isLoading } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { name: "Hosting", path: "/hosting", icon: Server },
-    { name: "Cloud", path: "/cloud", icon: Cloud },
-    { name: "Domains", path: "/domains", icon: Globe },
-    { name: "Email", path: "/email", icon: Mail },
+    { name: "Hosting", path: "/dashboard/hosting", icon: Server },
+    { name: "Cloud", path: "/dashboard/cloud", icon: Cloud },
+    { name: "Domains", path: "/dashboard/domains", icon: Globe },
+    { name: "Email", path: "/dashboard/email", icon: Mail },
     { name: "Pricing", path: "/pricing" },
   ];
 
@@ -47,17 +49,29 @@ export const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm">
-                Dashboard
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow">
-                Get Started
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
+            {!isLoading && user ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow">
+                  Dashboard
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth/login">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <LogIn className="h-4 w-4" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/auth/signup">
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -90,17 +104,29 @@ export const Navigation = () => {
               </Link>
             ))}
             <div className="pt-4 space-y-2">
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full">
-                  Dashboard
-                </Button>
-              </Link>
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Get Started
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
+              {!isLoading && user ? (
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                    Dashboard
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full gap-2">
+                      <LogIn className="h-4 w-4" />
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -17,9 +17,12 @@ import {
   Award,
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
 import mascot from "@/assets/mascot-cheeti.png";
 
 const Landing = () => {
+  const { user } = useAuth();
+
   const features = [
     {
       icon: Zap,
@@ -132,6 +135,8 @@ const Landing = () => {
     },
   ];
 
+  const dashboardLink = user ? "/dashboard" : "/auth/signup";
+
   return (
     <div className="min-h-screen bg-gradient-hero">
       <Navigation />
@@ -160,9 +165,9 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/dashboard">
+                <Link to={dashboardLink}>
                   <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow">
-                    Start Free Trial
+                    {user ? "Go to Dashboard" : "Start Free Trial"}
                     <ChevronRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -279,7 +284,7 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/dashboard" className="block">
+                  <Link to={dashboardLink} className="block">
                     <Button
                       className={`w-full ${
                         plan.featured
@@ -342,9 +347,9 @@ const Landing = () => {
                 Join thousands of developers and businesses who trust CheetiHost for their hosting needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Link to="/dashboard">
+                <Link to={dashboardLink}>
                   <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                    Start Free Trial
+                    {user ? "Go to Dashboard" : "Start Free Trial"}
                     <ChevronRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -370,36 +375,36 @@ const Landing = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Products</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/hosting" className="hover:text-primary transition-colors">Web Hosting</Link></li>
-                <li><Link to="/cloud" className="hover:text-primary transition-colors">Cloud VPS</Link></li>
-                <li><Link to="/domains" className="hover:text-primary transition-colors">Domains</Link></li>
-                <li><Link to="/email" className="hover:text-primary transition-colors">Email Hosting</Link></li>
+                <li><Link to="/dashboard/hosting" className="hover:text-primary transition-colors">Web Hosting</Link></li>
+                <li><Link to="/dashboard/cloud" className="hover:text-primary transition-colors">Cloud VPS</Link></li>
+                <li><Link to="/dashboard/domains" className="hover:text-primary transition-colors">Domains</Link></li>
+                <li><Link to="/dashboard/email" className="hover:text-primary transition-colors">Email Hosting</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Company</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link to="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link to="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">About Us</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Careers</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Blog</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Support</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/docs" className="hover:text-primary transition-colors">Documentation</Link></li>
-                <li><Link to="/support" className="hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link to="/status" className="hover:text-primary transition-colors">Status</Link></li>
-                <li><Link to="/community" className="hover:text-primary transition-colors">Community</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Documentation</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Help Center</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Status</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Community</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Legal</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                <li><Link to="/cookies" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link to="/" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>
