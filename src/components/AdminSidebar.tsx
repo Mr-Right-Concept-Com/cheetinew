@@ -9,7 +9,8 @@ import {
   LogOut,
   Shield,
   Mail,
-  Cloud
+  Cloud,
+  Home
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,10 +25,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import mascotCheeti from "@/assets/mascot-cheeti.png";
 
 const AdminSidebar = () => {
   const location = useLocation();
   const { open } = useSidebar();
+  const { logout } = useAuth();
   
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
@@ -41,18 +45,38 @@ const AdminSidebar = () => {
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <Link to="/" className="flex items-center gap-2 px-2 py-4">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-cheeti-gold to-digital-blue flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-bold text-background">C</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-speed flex items-center justify-center flex-shrink-0 shadow-glow">
+            <img src={mascotCheeti} alt="Cheeti" className="w-6 h-6 object-contain" />
           </div>
           {open && <span className="font-bold text-lg truncate">CheetiHost Admin</span>}
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/dashboard">
+                    <Home className="h-4 w-4" />
+                    <span>User Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -80,7 +104,10 @@ const AdminSidebar = () => {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-destructive hover:text-destructive hover:bg-destructive/10">
+            <SidebarMenuButton 
+              onClick={handleLogout}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </SidebarMenuButton>
