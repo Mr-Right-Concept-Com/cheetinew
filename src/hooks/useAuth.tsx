@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -51,9 +51,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
-  };
+  }, []);
 
-  const fetchRole = async (userId: string) => {
+  const fetchRole = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error fetching role:", error);
       setRole("user"); // Default to user role
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -102,9 +102,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfile, fetchRole]);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -123,9 +123,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       return { error: error as Error };
     }
-  };
+  }, [location.pathname, navigate]);
 
-  const signup = async (email: string, password: string, fullName: string) => {
+  const signup = useCallback(async (email: string, password: string, fullName: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -146,18 +146,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       return { error: error as Error };
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setRole(null);
     navigate("/");
-  };
+  }, [navigate]);
 
-  const updateProfile = async (data: Partial<Profile>) => {
+  const updateProfile = useCallback(async (data: Partial<Profile>) => {
     if (!user) return { error: new Error("Not authenticated") };
 
     try {
@@ -174,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       return { error: error as Error };
     }
-  };
+  }, [user, fetchProfile]);
 
   const isAdmin = role === "admin";
 
