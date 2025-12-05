@@ -86,8 +86,8 @@ const App = () => (
           <CommandPalette />
           <CheetiAI />
           <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/" element={<Suspense fallback={<LoadingFallback />}><Landing /></Suspense>} />
+            <Route path="/pricing" element={<Suspense fallback={<LoadingFallback />}><Pricing /></Suspense>} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
 
