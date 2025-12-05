@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Lock, User, AlertCircle, Chrome, Github } from "lucide-react";
+import { Mail, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import logoFull from "@/assets/logo-full.png";
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signup, user, isLoading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,6 +25,13 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/dashboard");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,21 +63,41 @@ const Signup = () => {
       return;
     }
 
-    // Simulate signup - Replace with actual authentication
-    setTimeout(() => {
-      toast({
-        title: "Account Created!",
-        description: "Welcome to CheetiHost. Let's get started!",
-      });
-      navigate("/dashboard");
+    const { error: signupError } = await signup(formData.email, formData.password, formData.name);
+
+    if (signupError) {
+      if (signupError.message.includes("already registered")) {
+        setError("This email is already registered. Please sign in instead.");
+      } else {
+        setError(signupError.message || "Failed to create account. Please try again.");
+      }
       setIsLoading(false);
-    }, 1000);
+      return;
+    }
+
+    toast({
+      title: "Account Created!",
+      description: "Please check your email to verify your account.",
+    });
+    setIsLoading(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-card/80 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
+          <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 mx-auto">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
           <div className="flex justify-center mb-4">
             <img src={logoFull} alt="CheetiHost" className="h-12" />
           </div>
@@ -189,20 +218,9 @@ const Signup = () => {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                Or sign up with
+                Already have an account?
               </span>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="w-full" disabled={isLoading}>
-              <Chrome className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button variant="outline" className="w-full" disabled={isLoading}>
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
           </div>
 
           <div className="text-center text-sm">
