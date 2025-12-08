@@ -13,13 +13,29 @@ import {
   ArrowDownRight,
   Target,
   Repeat,
-  LineChart,
-  PieChart,
+  LineChart as LineChartIcon,
+  PieChart as PieChartIcon,
   BarChart3,
   Globe,
   RefreshCw,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 const AdminDashboard = () => {
   // Investor Metrics
@@ -33,6 +49,31 @@ const AdminDashboard = () => {
     netRevenueRetention: 115,
     paybackPeriod: 3.2,
   };
+
+  // MRR Trend Data
+  const mrrTrendData = [
+    { month: "Jan", mrr: 15200, users: 890 },
+    { month: "Feb", mrr: 16800, users: 945 },
+    { month: "Mar", mrr: 17500, users: 987 },
+    { month: "Apr", mrr: 19200, users: 1023 },
+    { month: "May", mrr: 20100, users: 1078 },
+    { month: "Jun", mrr: 21500, users: 1112 },
+    { month: "Jul", mrr: 22300, users: 1156 },
+    { month: "Aug", mrr: 23100, users: 1189 },
+    { month: "Sep", mrr: 23800, users: 1212 },
+    { month: "Oct", mrr: 24100, users: 1234 },
+    { month: "Nov", mrr: 24500, users: 1247 },
+    { month: "Dec", mrr: 25800, users: 1285 },
+  ];
+
+  // Revenue by Service (for pie chart)
+  const revenueByService = [
+    { name: "Hosting", value: 12400, color: "hsl(var(--primary))" },
+    { name: "Cloud VPS", value: 7350, color: "hsl(var(--accent))" },
+    { name: "Domains", value: 2940, color: "hsl(210, 100%, 50%)" },
+    { name: "Email", value: 1225, color: "hsl(142, 76%, 36%)" },
+    { name: "Add-ons", value: 585, color: "hsl(280, 70%, 50%)" },
+  ];
 
   const revenueBreakdown = [
     { name: "Hosting", value: 12400, percentage: 50.6, color: "bg-primary" },
@@ -171,12 +212,131 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Growth Metrics & Revenue Breakdown */}
+      {/* MRR Trend Chart & User Growth */}
       <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <LineChart className="h-5 w-5 text-primary" />
+              <LineChartIcon className="h-5 w-5 text-primary" />
+              MRR Trend
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={mrrTrendData}>
+                  <defs>
+                    <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-xs fill-muted-foreground" />
+                  <YAxis className="text-xs fill-muted-foreground" tickFormatter={(v) => `$${v/1000}k`} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'MRR']}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="mrr"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill="url(#mrrGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <Users className="h-5 w-5 text-accent" />
+              User Growth
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={mrrTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-xs fill-muted-foreground" />
+                  <YAxis className="text-xs fill-muted-foreground" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="users"
+                    stroke="hsl(var(--accent))"
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--accent))' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Breakdown Chart & Growth Metrics */}
+      <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <PieChartIcon className="h-5 w-5 text-accent" />
+              Revenue by Service
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={revenueByService}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {revenueByService.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
               Growth Metrics
             </CardTitle>
           </CardHeader>
@@ -195,37 +355,38 @@ const AdminDashboard = () => {
             ))}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-accent" />
-              Revenue Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {revenueBreakdown.map((item, i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                    <span className="font-medium">{item.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground">{item.percentage}%</span>
-                    <span className="font-semibold">{formatCurrency(item.value)}</span>
-                  </div>
-                </div>
-                <Progress value={item.percentage} className="h-2" />
-              </div>
-            ))}
-            <div className="pt-3 border-t flex justify-between items-center">
-              <span className="font-semibold">Total MRR</span>
-              <span className="text-xl font-bold text-primary">{formatCurrency(investorMetrics.mrr.value)}</span>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Revenue Breakdown List */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-accent" />
+            Revenue Breakdown
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {revenueBreakdown.map((item, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                  <span className="font-medium">{item.name}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-muted-foreground">{item.percentage}%</span>
+                  <span className="font-semibold">{formatCurrency(item.value)}</span>
+                </div>
+              </div>
+              <Progress value={item.percentage} className="h-2" />
+            </div>
+          ))}
+          <div className="pt-3 border-t flex justify-between items-center">
+            <span className="font-semibold">Total MRR</span>
+            <span className="text-xl font-bold text-primary">{formatCurrency(investorMetrics.mrr.value)}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
