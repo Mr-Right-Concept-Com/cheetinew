@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import AdminSidebar from "./components/AdminSidebar";
+import ResellerSidebar from "./components/ResellerSidebar";
 import { CheetiAI } from "./components/CheetiAI";
 import { CommandPalette } from "./components/CommandPalette";
 import { LoadingFallback } from "./components/LoadingFallback";
@@ -47,6 +48,9 @@ const EmailManagement = lazy(() => import("./pages/admin/EmailManagement"));
 const CloudManagement = lazy(() => import("./pages/admin/CloudManagement"));
 const SystemSettings = lazy(() => import("./pages/admin/SystemSettings"));
 
+// Reseller routes
+const ResellerDashboard = lazy(() => import("./pages/reseller/ResellerDashboard"));
+
 const queryClient = new QueryClient();
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
@@ -67,6 +71,19 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <AdminSidebar />
+      <main className="flex-1 overflow-auto bg-background">
+        <div className="container mx-auto p-4 md:p-6 lg:p-8">
+          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+        </div>
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
+const ResellerLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="flex min-h-screen w-full">
+      <ResellerSidebar />
       <main className="flex-1 overflow-auto bg-background">
         <div className="container mx-auto p-4 md:p-6 lg:p-8">
           <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
@@ -116,6 +133,9 @@ const App = () => (
             <Route path="/admin/email" element={<ProtectedRoute requireAdmin><AdminLayout><EmailManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/cloud" element={<ProtectedRoute requireAdmin><AdminLayout><CloudManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><SystemSettings /></AdminLayout></ProtectedRoute>} />
+            
+            {/* Reseller Routes */}
+            <Route path="/reseller" element={<ProtectedRoute><ResellerLayout><ResellerDashboard /></ResellerLayout></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
