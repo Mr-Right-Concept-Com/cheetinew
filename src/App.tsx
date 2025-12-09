@@ -50,6 +50,11 @@ const SystemSettings = lazy(() => import("./pages/admin/SystemSettings"));
 
 // Reseller routes
 const ResellerDashboard = lazy(() => import("./pages/reseller/ResellerDashboard"));
+const ResellerClients = lazy(() => import("./pages/reseller/ResellerClients"));
+const ResellerProducts = lazy(() => import("./pages/reseller/ResellerProducts"));
+const ResellerBilling = lazy(() => import("./pages/reseller/ResellerBilling"));
+const ResellerPayouts = lazy(() => import("./pages/reseller/ResellerPayouts"));
+const ResellerWhiteLabel = lazy(() => import("./pages/reseller/ResellerWhiteLabel"));
 
 const queryClient = new QueryClient();
 
@@ -136,6 +141,11 @@ const App = () => (
             
             {/* Reseller Routes */}
             <Route path="/reseller" element={<ProtectedRoute><ResellerLayout><ResellerDashboard /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/clients" element={<ProtectedRoute><ResellerLayout><ResellerClients /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/products" element={<ProtectedRoute><ResellerLayout><ResellerProducts /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/billing" element={<ProtectedRoute><ResellerLayout><ResellerBilling /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/payouts" element={<ProtectedRoute><ResellerLayout><ResellerPayouts /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/white-label" element={<ProtectedRoute><ResellerLayout><ResellerWhiteLabel /></ResellerLayout></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
