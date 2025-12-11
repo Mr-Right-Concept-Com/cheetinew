@@ -10,7 +10,8 @@ import {
   Shield,
   Mail,
   Cloud,
-  Home
+  Home,
+  UserCog
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const AdminSidebar = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Users, label: "Users", path: "/admin/users" },
+    { icon: UserCog, label: "Role Management", path: "/admin/roles" },
     { icon: Server, label: "Hosting", path: "/admin/hosting" },
     { icon: Cloud, label: "Cloud", path: "/admin/cloud" },
     { icon: Globe, label: "Domains", path: "/admin/domains" },
