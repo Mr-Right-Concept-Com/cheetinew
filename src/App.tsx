@@ -40,6 +40,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // Admin routes
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const UsersManagement = lazy(() => import("./pages/admin/UsersManagement"));
+const RoleManagement = lazy(() => import("./pages/admin/RoleManagement"));
 const HostingManagement = lazy(() => import("./pages/admin/HostingManagement"));
 const DomainsManagement = lazy(() => import("./pages/admin/DomainsManagement"));
 const BillingManagement = lazy(() => import("./pages/admin/BillingManagement"));
@@ -50,6 +51,7 @@ const SystemSettings = lazy(() => import("./pages/admin/SystemSettings"));
 
 // Reseller routes
 const ResellerDashboard = lazy(() => import("./pages/reseller/ResellerDashboard"));
+const ResellerOnboarding = lazy(() => import("./pages/reseller/ResellerOnboarding"));
 const ResellerClients = lazy(() => import("./pages/reseller/ResellerClients"));
 const ResellerProducts = lazy(() => import("./pages/reseller/ResellerProducts"));
 const ResellerBilling = lazy(() => import("./pages/reseller/ResellerBilling"));
@@ -131,6 +133,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminLayout><UsersManagement /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/roles" element={<ProtectedRoute requireAdmin><AdminLayout><RoleManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/hosting" element={<ProtectedRoute requireAdmin><AdminLayout><HostingManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/domains" element={<ProtectedRoute requireAdmin><AdminLayout><DomainsManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/billing" element={<ProtectedRoute requireAdmin><AdminLayout><BillingManagement /></AdminLayout></ProtectedRoute>} />
@@ -140,6 +143,7 @@ const App = () => (
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><SystemSettings /></AdminLayout></ProtectedRoute>} />
             
             {/* Reseller Routes */}
+            <Route path="/reseller/onboarding" element={<ProtectedRoute><Suspense fallback={<LoadingFallback />}><ResellerOnboarding /></Suspense></ProtectedRoute>} />
             <Route path="/reseller" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerDashboard /></ResellerLayout></ProtectedRoute>} />
             <Route path="/reseller/clients" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerClients /></ResellerLayout></ProtectedRoute>} />
             <Route path="/reseller/products" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerProducts /></ResellerLayout></ProtectedRoute>} />
