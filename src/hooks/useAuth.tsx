@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
-type AppRole = "admin" | "moderator" | "user";
+type AppRole = "admin" | "moderator" | "user" | "reseller";
 
 interface Profile {
   id: string;
@@ -21,6 +21,7 @@ interface AuthContextType {
   role: AppRole | null;
   isLoading: boolean;
   isAdmin: boolean;
+  isReseller: boolean;
   login: (email: string, password: string) => Promise<{ error: Error | null }>;
   signup: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
@@ -177,6 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user, fetchProfile]);
 
   const isAdmin = role === "admin";
+  const isReseller = role === "reseller";
 
   return (
     <AuthContext.Provider
@@ -187,6 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role,
         isLoading,
         isAdmin,
+        isReseller,
         login,
         signup,
         logout,

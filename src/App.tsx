@@ -140,12 +140,12 @@ const App = () => (
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><SystemSettings /></AdminLayout></ProtectedRoute>} />
             
             {/* Reseller Routes */}
-            <Route path="/reseller" element={<ProtectedRoute><ResellerLayout><ResellerDashboard /></ResellerLayout></ProtectedRoute>} />
-            <Route path="/reseller/clients" element={<ProtectedRoute><ResellerLayout><ResellerClients /></ResellerLayout></ProtectedRoute>} />
-            <Route path="/reseller/products" element={<ProtectedRoute><ResellerLayout><ResellerProducts /></ResellerLayout></ProtectedRoute>} />
-            <Route path="/reseller/billing" element={<ProtectedRoute><ResellerLayout><ResellerBilling /></ResellerLayout></ProtectedRoute>} />
-            <Route path="/reseller/payouts" element={<ProtectedRoute><ResellerLayout><ResellerPayouts /></ResellerLayout></ProtectedRoute>} />
-            <Route path="/reseller/white-label" element={<ProtectedRoute><ResellerLayout><ResellerWhiteLabel /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerDashboard /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/clients" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerClients /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/products" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerProducts /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/billing" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerBilling /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/payouts" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerPayouts /></ResellerLayout></ProtectedRoute>} />
+            <Route path="/reseller/white-label" element={<ProtectedRoute requireReseller><ResellerLayout><ResellerWhiteLabel /></ResellerLayout></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
