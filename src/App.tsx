@@ -48,6 +48,8 @@ const SecurityManagement = lazy(() => import("./pages/admin/SecurityManagement")
 const EmailManagement = lazy(() => import("./pages/admin/EmailManagement"));
 const CloudManagement = lazy(() => import("./pages/admin/CloudManagement"));
 const SystemSettings = lazy(() => import("./pages/admin/SystemSettings"));
+const AdminPaymentSettings = lazy(() => import("./pages/admin/AdminPaymentSettings"));
+const AdminPanelSettings = lazy(() => import("./pages/admin/AdminPanelSettings"));
 
 // Reseller routes
 const ResellerDashboard = lazy(() => import("./pages/reseller/ResellerDashboard"));
@@ -141,6 +143,8 @@ const App = () => (
             <Route path="/admin/email" element={<ProtectedRoute requireAdmin><AdminLayout><EmailManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/cloud" element={<ProtectedRoute requireAdmin><AdminLayout><CloudManagement /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><SystemSettings /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPaymentSettings /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/panels" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPanelSettings /></AdminLayout></ProtectedRoute>} />
             
             {/* Reseller Routes */}
             <Route path="/reseller/onboarding" element={<ProtectedRoute><Suspense fallback={<LoadingFallback />}><ResellerOnboarding /></Suspense></ProtectedRoute>} />
