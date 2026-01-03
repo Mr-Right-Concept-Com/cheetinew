@@ -152,6 +152,65 @@ function BladeStack({ blades, onClose }: BladeStackProps) {
   );
 }
 
+// Simple standalone BladePanel component (for use without provider)
+interface BladePanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  size?: BladeSize;
+  children: ReactNode;
+}
+
+export function BladePanel({ 
+  isOpen, 
+  onClose, 
+  title, 
+  description, 
+  size = "lg", 
+  children 
+}: BladePanelProps) {
+  const getSizeClass = (s: BladeSize): string => {
+    const sizes: Record<BladeSize, string> = {
+      sm: "sm:max-w-sm",
+      md: "sm:max-w-md",
+      lg: "sm:max-w-lg",
+      xl: "sm:max-w-xl",
+      full: "sm:max-w-full",
+    };
+    return sizes[s];
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent
+        className={cn(
+          "flex flex-col bg-card border-border overflow-y-auto",
+          getSizeClass(size)
+        )}
+      >
+        <SheetHeader className="flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl font-bold">{title}</SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          {description && (
+            <SheetDescription>{description}</SheetDescription>
+          )}
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto mt-4">{children}</div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 // Pre-built blade templates
 export function QuickActionBlade({ 
   title, 
