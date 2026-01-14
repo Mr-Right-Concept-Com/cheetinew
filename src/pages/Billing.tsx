@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   CreditCard,
   Download,
@@ -14,18 +15,23 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSubscriptions, useInvoices, usePaymentMethods } from "@/hooks/useBilling";
+import { format } from "date-fns";
 
 const Billing = () => {
-  const invoices = [
-    { id: "INV-2024-001", date: "2024-01-15", amount: 29.99, status: "paid", plan: "Pro Hosting" },
-    { id: "INV-2024-002", date: "2024-02-15", amount: 29.99, status: "paid", plan: "Pro Hosting" },
-    { id: "INV-2024-003", date: "2024-03-15", amount: 29.99, status: "pending", plan: "Pro Hosting" },
-  ];
+  const { data: subscriptions, isLoading: loadingSubs } = useSubscriptions();
+  const { data: invoices, isLoading: loadingInvoices } = useInvoices();
+  const { data: paymentMethods, isLoading: loadingPayments } = usePaymentMethods();
 
-  const paymentMethods = [
-    { id: 1, type: "Visa", last4: "4242", expiry: "12/25", default: true },
-    { id: 2, type: "Mastercard", last4: "8888", expiry: "09/26", default: false },
-  ];
+  const isLoading = loadingSubs || loadingInvoices || loadingPayments;
+
+  // Calculate stats from real data
+  const totalSpent = invoices?.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total || 0), 0) || 0;
+  const activePlans = subscriptions?.filter(s => s.status === 'active').length || 0;
+  const nextPayment = subscriptions?.find(s => s.status === 'active')?.amount || 0;
+  const paidInvoices = invoices?.filter(i => i.status === 'paid').length || 0;
+  const totalInvoices = invoices?.length || 1;
+  const successRate = Math.round((paidInvoices / totalInvoices) * 100);
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,12 +51,19 @@ const Billing = () => {
         </div>
 
         {/* Alert Banner */}
-        <Alert className="border-accent/50 bg-accent/10">
-          <AlertCircle className="h-4 w-4 text-accent" />
-          <AlertDescription className="text-accent">
-            Your next billing date is <strong>March 15, 2024</strong> for $29.99. Update your payment method before then.
-          </AlertDescription>
-        </Alert>
+        {subscriptions && subscriptions.length > 0 && (
+          <Alert className="border-accent/50 bg-accent/10">
+            <AlertCircle className="h-4 w-4 text-accent" />
+            <AlertDescription className="text-accent">
+              Your next billing date is <strong>
+                {subscriptions[0].current_period_end 
+                  ? format(new Date(subscriptions[0].current_period_end), 'MMMM d, yyyy')
+                  : 'N/A'
+                }
+              </strong> for ${subscriptions[0].amount}. Update your payment method before then.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -61,7 +74,11 @@ const Billing = () => {
                   <DollarSign className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">$89.97</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-20" />
+                  ) : (
+                    <p className="text-2xl font-bold">${totalSpent.toFixed(2)}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Total Spent</p>
                 </div>
               </div>
@@ -74,7 +91,11 @@ const Billing = () => {
                   <Calendar className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">3</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <p className="text-2xl font-bold">{activePlans}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Active Plans</p>
                 </div>
               </div>
@@ -87,7 +108,11 @@ const Billing = () => {
                   <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">$29.99</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-20" />
+                  ) : (
+                    <p className="text-2xl font-bold">${nextPayment.toFixed(2)}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Next Payment</p>
                 </div>
               </div>
@@ -100,7 +125,11 @@ const Billing = () => {
                   <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">100%</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold">{successRate}%</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Payment Success</p>
                 </div>
               </div>
@@ -124,59 +153,56 @@ const Billing = () => {
                 <CardDescription>Manage your current plans and services</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-6 rounded-lg border border-border bg-background/50 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">Pro Hosting Plan</h3>
-                        <Badge className="bg-primary/10 text-primary border-none">Active</Badge>
+                {loadingSubs ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                  </div>
+                ) : subscriptions?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No active subscriptions found.
+                  </div>
+                ) : (
+                  subscriptions?.map((sub) => (
+                    <div key={sub.id} className="p-6 rounded-lg border border-border bg-background/50 space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold text-lg">{sub.plan_name}</h3>
+                            <Badge className={`border-none ${
+                              sub.status === 'active' 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {sub.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {sub.plan_type} Plan • {sub.interval || 'Monthly'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold">${sub.amount}</p>
+                          <p className="text-sm text-muted-foreground">/{sub.interval || 'month'}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        100 GB Storage • Unlimited Bandwidth • Free SSL
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">$29.99</p>
-                      <p className="text-sm text-muted-foreground">/month</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      Next billing: <strong>March 15, 2024</strong>
-                    </p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Change Plan</Button>
-                      <Button variant="destructive" size="sm">Cancel</Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-6 rounded-lg border border-border bg-background/50 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">CheetiCloud VPS</h3>
-                        <Badge className="bg-accent/10 text-accent border-none">Active</Badge>
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <p className="text-sm text-muted-foreground">
+                          Next billing: <strong>
+                            {sub.current_period_end 
+                              ? format(new Date(sub.current_period_end), 'MMMM d, yyyy')
+                              : 'N/A'
+                            }
+                          </strong>
+                        </p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">Change Plan</Button>
+                          <Button variant="destructive" size="sm">Cancel</Button>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        4 vCPU • 8 GB RAM • 160 GB SSD
-                      </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">$49.99</p>
-                      <p className="text-sm text-muted-foreground">/month</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      Next billing: <strong>March 20, 2024</strong>
-                    </p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Upgrade</Button>
-                      <Button variant="destructive" size="sm">Cancel</Button>
-                    </div>
-                  </div>
-                </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -189,40 +215,57 @@ const Billing = () => {
                 <CardDescription>View and download your invoices</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {invoices.map((invoice) => (
-                    <div
-                      key={invoice.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <CreditCard className="h-6 w-6 text-primary" />
+                {loadingInvoices ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                ) : invoices?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No invoices found.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {invoices?.map((invoice) => (
+                      <div
+                        key={invoice.id}
+                        className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <CreditCard className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{invoice.invoice_number || invoice.id.slice(0, 8)}</h4>
+                            <p className="text-sm text-muted-foreground">Invoice</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-semibold">{invoice.id}</h4>
-                          <p className="text-sm text-muted-foreground">{invoice.plan}</p>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className="font-semibold">${invoice.total}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {invoice.created_at 
+                                ? format(new Date(invoice.created_at), 'MMM d, yyyy')
+                                : 'N/A'
+                              }
+                            </p>
+                          </div>
+                          <Badge
+                            variant={invoice.status === "paid" ? "default" : "secondary"}
+                            className={invoice.status === "paid" ? "bg-primary/10 text-primary border-none" : ""}
+                          >
+                            {invoice.status}
+                          </Badge>
+                          <Button variant="ghost" size="sm" className="gap-2">
+                            <Download className="h-4 w-4" />
+                            PDF
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <p className="font-semibold">${invoice.amount}</p>
-                          <p className="text-sm text-muted-foreground">{invoice.date}</p>
-                        </div>
-                        <Badge
-                          variant={invoice.status === "paid" ? "default" : "secondary"}
-                          className={invoice.status === "paid" ? "bg-primary/10 text-primary border-none" : ""}
-                        >
-                          {invoice.status}
-                        </Badge>
-                        <Button variant="ghost" size="sm" className="gap-2">
-                          <Download className="h-4 w-4" />
-                          PDF
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -241,36 +284,49 @@ const Billing = () => {
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
-                {paymentMethods.map((method) => (
-                  <div
-                    key={method.id}
-                    className="flex items-center justify-between p-6 rounded-lg border border-border bg-background/50"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <CreditCard className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold">
-                            {method.type} •••• {method.last4}
-                          </h4>
-                          {method.default && (
-                            <Badge className="bg-primary/10 text-primary border-none">Default</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {!method.default && <Button variant="outline" size="sm">Set Default</Button>}
-                      <Button variant="ghost" size="sm">Edit</Button>
-                      <Button variant="ghost" size="sm" className="text-destructive">
-                        Remove
-                      </Button>
-                    </div>
+                {loadingPayments ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
                   </div>
-                ))}
+                ) : paymentMethods?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No payment methods found. Add one to get started.
+                  </div>
+                ) : (
+                  paymentMethods?.map((method) => (
+                    <div
+                      key={method.id}
+                      className="flex items-center justify-between p-6 rounded-lg border border-border bg-background/50"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <CreditCard className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold">
+                              {method.brand || method.type} •••• {method.last_four}
+                            </h4>
+                            {method.is_default && (
+                              <Badge className="bg-primary/10 text-primary border-none">Default</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Expires {method.exp_month}/{method.exp_year}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {!method.is_default && <Button variant="outline" size="sm">Set Default</Button>}
+                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button variant="ghost" size="sm" className="text-destructive">
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>
