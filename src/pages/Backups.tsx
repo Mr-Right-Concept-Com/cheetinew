@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Database,
   Download,
@@ -27,81 +28,60 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useBackups, useCreateBackup, useRestoreBackup } from "@/hooks/useBackups";
+import { format } from "date-fns";
 
 const Backups = () => {
   const { toast } = useToast();
   const [autoBackup, setAutoBackup] = useState(true);
   const [backupFrequency, setBackupFrequency] = useState("daily");
+  
+  const { data: backups, isLoading } = useBackups();
+  const createBackup = useCreateBackup();
+  const restoreBackup = useRestoreBackup();
 
-  const backups = [
-    {
-      id: 1,
-      name: "myapp.com",
-      type: "Full Backup",
-      size: "2.4 GB",
-      date: "2024-12-02 10:30",
-      status: "completed",
-      retention: "30 days",
-    },
-    {
-      id: 2,
-      name: "portfolio.dev",
-      type: "Incremental",
-      size: "450 MB",
-      date: "2024-12-02 08:15",
-      status: "completed",
-      retention: "30 days",
-    },
-    {
-      id: 3,
-      name: "blog.io",
-      type: "Full Backup",
-      size: "1.8 GB",
-      date: "2024-12-01 22:00",
-      status: "completed",
-      retention: "30 days",
-    },
-    {
-      id: 4,
-      name: "production-api",
-      type: "Snapshot",
-      size: "8.2 GB",
-      date: "2024-12-01 18:45",
-      status: "completed",
-      retention: "7 days",
-    },
-    {
-      id: 5,
-      name: "staging-server",
-      type: "Incremental",
-      size: "320 MB",
-      date: "2024-12-01 12:00",
-      status: "failed",
-      retention: "7 days",
-    },
-  ];
+  // Calculate stats
+  const totalBackups = backups?.length || 0;
+  const completedBackups = backups?.filter(b => b.status === 'completed').length || 0;
+  const totalStorageMB = backups?.reduce((sum, b) => sum + (b.size_mb || 0), 0) || 0;
+  const storageGB = (totalStorageMB / 1024).toFixed(1);
 
-  const storageUsage = {
-    used: 45.2,
-    total: 100,
-    percentage: 45,
+  const handleBackupNow = async () => {
+    try {
+      await createBackup.mutateAsync({
+        type: 'full',
+        name: `Manual Backup - ${new Date().toLocaleDateString()}`,
+      });
+      toast({
+        title: "Backup Started",
+        description: "Creating a new backup. This may take a few minutes.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to start backup.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleBackupNow = () => {
-    toast({
-      title: "Backup Started",
-      description: "Creating a new backup. This may take a few minutes.",
-    });
+  const handleRestore = async (backupId: string) => {
+    try {
+      await restoreBackup.mutateAsync(backupId);
+      toast({
+        title: "Restore Initiated",
+        description: "Restore process has been started. You will be notified when complete.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to start restore.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleRestore = (backupId: number) => {
-    toast({
-      title: "Restore Initiated",
-      description: "Restore process has been started. You will be notified when complete.",
-    });
-  };
-
-  const handleDownload = (backupId: number) => {
+  const handleDownload = (backupId: string) => {
     toast({
       title: "Download Started",
       description: "Your backup is being prepared for download.",
@@ -119,9 +99,13 @@ const Backups = () => {
               Protect your data with automated backups and instant recovery
             </p>
           </div>
-          <Button onClick={handleBackupNow} className="bg-gradient-speed text-primary-foreground shadow-glow gap-2">
+          <Button 
+            onClick={handleBackupNow} 
+            className="bg-gradient-speed text-primary-foreground shadow-glow gap-2"
+            disabled={createBackup.isPending}
+          >
             <Database className="h-4 w-4" />
-            Backup Now
+            {createBackup.isPending ? "Creating..." : "Backup Now"}
           </Button>
         </div>
 
@@ -134,7 +118,11 @@ const Backups = () => {
                   <Database className="h-6 w-6 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">24</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <p className="text-2xl font-bold truncate">{totalBackups}</p>
+                  )}
                   <p className="text-sm text-muted-foreground truncate">Total Backups</p>
                 </div>
               </div>
@@ -148,7 +136,12 @@ const Backups = () => {
                   <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">2h ago</p>
+                  <p className="text-2xl font-bold truncate">
+                    {backups?.[0]?.created_at 
+                      ? format(new Date(backups[0].created_at), 'h:mma')
+                      : 'N/A'
+                    }
+                  </p>
                   <p className="text-sm text-muted-foreground truncate">Last Backup</p>
                 </div>
               </div>
@@ -162,7 +155,11 @@ const Backups = () => {
                   <HardDrive className="h-6 w-6 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">{storageUsage.used} GB</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold truncate">{storageGB} GB</p>
+                  )}
                   <p className="text-sm text-muted-foreground truncate">Storage Used</p>
                 </div>
               </div>
@@ -176,7 +173,13 @@ const Backups = () => {
                   <Shield className="h-6 w-6 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">99.9%</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold truncate">
+                      {totalBackups > 0 ? Math.round((completedBackups / totalBackups) * 100) : 100}%
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground truncate">Recovery Rate</p>
                 </div>
               </div>
@@ -189,13 +192,13 @@ const Backups = () => {
           <CardHeader>
             <CardTitle className="text-lg">Backup Storage</CardTitle>
             <CardDescription>
-              {storageUsage.used} GB of {storageUsage.total} GB used
+              {storageGB} GB of 100 GB used
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Progress value={storageUsage.percentage} className="h-3" />
+            <Progress value={parseFloat(storageGB)} className="h-3" />
             <p className="text-sm text-muted-foreground mt-2">
-              {storageUsage.total - storageUsage.used} GB remaining
+              {(100 - parseFloat(storageGB)).toFixed(1)} GB remaining
             </p>
           </CardContent>
         </Card>
@@ -276,69 +279,91 @@ const Backups = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {backups.map((backup) => (
-                  <div
-                    key={backup.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-all bg-background/50 gap-4"
-                  >
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                        <Database className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold truncate">{backup.name}</h4>
-                          <Badge variant="outline" className="text-xs whitespace-nowrap">
-                            {backup.type}
-                          </Badge>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-20 w-full" />
+                  ))}
+                </div>
+              ) : backups?.length === 0 ? (
+                <div className="text-center py-12">
+                  <Database className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Backups Yet</h3>
+                  <p className="text-muted-foreground">Create your first backup to get started.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {backups?.map((backup) => (
+                    <div
+                      key={backup.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-all bg-background/50 gap-4"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                          <Database className="h-5 w-5 text-primary" />
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                          <span>{backup.date}</span>
-                          <span>•</span>
-                          <span>{backup.size}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold truncate">{backup.name || 'Backup'}</h4>
+                            <Badge variant="outline" className="text-xs whitespace-nowrap">
+                              {backup.type}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                            <span>
+                              {backup.created_at 
+                                ? format(new Date(backup.created_at), 'MMM d, yyyy h:mm a')
+                                : 'N/A'
+                              }
+                            </span>
+                            <span>•</span>
+                            <span>{backup.size_mb ? `${(backup.size_mb / 1024).toFixed(2)} GB` : 'N/A'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge
-                        variant="outline"
-                        className={`whitespace-nowrap ${
-                          backup.status === "completed"
-                            ? "bg-green-500/10 text-green-500 border-green-500/20"
-                            : "bg-red-500/10 text-red-500 border-red-500/20"
-                        }`}
-                      >
-                        {backup.status === "completed" ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                        )}
-                        {backup.status}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(backup.id)}
-                        className="gap-1"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Download</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRestore(backup.id)}
-                        className="gap-1"
-                      >
-                        <Upload className="h-4 w-4" />
-                        <span className="hidden sm:inline">Restore</span>
-                      </Button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
+                          variant="outline"
+                          className={`whitespace-nowrap ${
+                            backup.status === "completed"
+                              ? "bg-green-500/10 text-green-500 border-green-500/20"
+                              : backup.status === "failed"
+                              ? "bg-red-500/10 text-red-500 border-red-500/20"
+                              : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+                          }`}
+                        >
+                          {backup.status === "completed" ? (
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                          ) : (
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                          )}
+                          {backup.status}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(backup.id)}
+                          className="gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span className="hidden sm:inline">Download</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRestore(backup.id)}
+                          className="gap-1"
+                          disabled={restoreBackup.isPending}
+                        >
+                          <Upload className="h-4 w-4" />
+                          <span className="hidden sm:inline">Restore</span>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

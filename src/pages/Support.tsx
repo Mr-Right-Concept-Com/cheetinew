@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   HelpCircle,
   MessageSquare,
@@ -14,14 +15,53 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
+  Plus,
 } from "lucide-react";
+import { useSupportTickets, useCreateTicket } from "@/hooks/useSupport";
+import { format } from "date-fns";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 const Support = () => {
-  const tickets = [
-    { id: "TKT-1234", subject: "SSL Certificate Issue", status: "open", priority: "high", date: "2024-03-10" },
-    { id: "TKT-1235", subject: "Billing Question", status: "answered", priority: "medium", date: "2024-03-08" },
-    { id: "TKT-1236", subject: "Domain Transfer", status: "closed", priority: "low", date: "2024-03-05" },
-  ];
+  const { toast } = useToast();
+  const { data: tickets, isLoading } = useSupportTickets();
+  const createTicket = useCreateTicket();
+  const [newTicket, setNewTicket] = useState({ subject: "", description: "", priority: "medium" });
+
+  const handleCreateTicket = async () => {
+    try {
+      await createTicket.mutateAsync({
+        subject: newTicket.subject,
+        description: newTicket.description,
+        priority: newTicket.priority as "low" | "medium" | "high" | "urgent",
+      });
+      toast({
+        title: "Ticket Created",
+        description: "Your support ticket has been submitted successfully.",
+      });
+      setNewTicket({ subject: "", description: "", priority: "medium" });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to create ticket.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Calculate stats
+  const openTickets = tickets?.filter(t => t.status === 'open').length || 0;
+  const totalTickets = tickets?.length || 0;
 
   const knowledgeBase = [
     { title: "Getting Started with CheetiHost", category: "Basics", views: "2.4K", icon: "🚀" },
@@ -73,7 +113,11 @@ const Support = () => {
                   <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xl md:text-2xl font-bold truncate">3</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <p className="text-xl md:text-2xl font-bold truncate">{openTickets}</p>
+                  )}
                   <p className="text-xs md:text-sm text-muted-foreground truncate">Open Tickets</p>
                 </div>
               </div>
@@ -149,62 +193,119 @@ const Support = () => {
                   <CardTitle>Support Tickets</CardTitle>
                   <CardDescription>View and manage your support requests</CardDescription>
                 </div>
-                <Button className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  New Ticket
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {tickets.map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <MessageSquare className="h-6 w-6 text-primary" />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      New Ticket
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Support Ticket</DialogTitle>
+                      <DialogDescription>
+                        Describe your issue and we'll get back to you as soon as possible.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Subject</Label>
+                        <Input 
+                          placeholder="Brief description of your issue"
+                          value={newTicket.subject}
+                          onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
+                        />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold">{ticket.id}</h4>
-                          <Badge
-                            variant={ticket.priority === "high" ? "destructive" : "secondary"}
-                            className={
-                              ticket.priority === "medium"
-                                ? "bg-accent/10 text-accent border-none"
-                                : ticket.priority === "low"
-                                ? "bg-muted text-muted-foreground"
-                                : ""
-                            }
-                          >
-                            {ticket.priority}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{ticket.subject}</p>
+                      <div className="space-y-2">
+                        <Label>Description</Label>
+                        <Textarea 
+                          placeholder="Provide details about your issue..."
+                          rows={5}
+                          value={newTicket.description}
+                          onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                        />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">{ticket.date}</p>
-                        <Badge
-                          variant={ticket.status === "closed" ? "default" : "secondary"}
-                          className={
-                            ticket.status === "open"
-                              ? "bg-primary/10 text-primary border-none"
-                              : ticket.status === "answered"
-                              ? "bg-accent/10 text-accent border-none"
-                              : "bg-muted"
-                          }
-                        >
-                          {ticket.status}
-                        </Badge>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        View
+                      <Button 
+                        onClick={handleCreateTicket} 
+                        className="w-full"
+                        disabled={createTicket.isPending}
+                      >
+                        {createTicket.isPending ? "Submitting..." : "Submit Ticket"}
                       </Button>
                     </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
                   </div>
-                ))}
+                ) : tickets?.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Tickets</h3>
+                    <p className="text-muted-foreground">You haven't created any support tickets yet.</p>
+                  </div>
+                ) : (
+                  tickets?.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="flex items-center justify-between p-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <MessageSquare className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold">{ticket.ticket_number || ticket.id.slice(0, 8)}</h4>
+                            <Badge
+                              variant={ticket.priority === "high" ? "destructive" : "secondary"}
+                              className={
+                                ticket.priority === "medium"
+                                  ? "bg-accent/10 text-accent border-none"
+                                  : ticket.priority === "low"
+                                  ? "bg-muted text-muted-foreground"
+                                  : ""
+                              }
+                            >
+                              {ticket.priority}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{ticket.subject}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">
+                            {ticket.created_at 
+                              ? format(new Date(ticket.created_at), 'MMM d, yyyy')
+                              : 'N/A'
+                            }
+                          </p>
+                          <Badge
+                            variant={ticket.status === "closed" ? "default" : "secondary"}
+                            className={
+                              ticket.status === "open"
+                                ? "bg-primary/10 text-primary border-none"
+                                : ticket.status === "answered"
+                                ? "bg-accent/10 text-accent border-none"
+                                : "bg-muted"
+                            }
+                          >
+                            {ticket.status}
+                          </Badge>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>

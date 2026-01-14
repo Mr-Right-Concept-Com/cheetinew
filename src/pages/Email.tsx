@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Mail,
   Plus,
@@ -35,38 +36,46 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useEmailAccounts, useCreateEmailAccount } from "@/hooks/useEmail";
 
 const Email = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [newEmail, setNewEmail] = useState({ username: "", domain: "", password: "", quota: 10 });
+  
+  const { data: mailboxes, isLoading } = useEmailAccounts();
+  const createEmail = useCreateEmailAccount();
 
-  const mailboxes = [
-    {
-      id: 1,
-      email: "info@myapp.com",
-      domain: "myapp.com",
-      storage: "2.4 GB / 10 GB",
-      messages: 1247,
-      status: "active",
-    },
-    {
-      id: 2,
-      email: "support@myapp.com",
-      domain: "myapp.com",
-      storage: "890 MB / 10 GB",
-      messages: 456,
-      status: "active",
-    },
-    {
-      id: 3,
-      email: "hello@portfolio.dev",
-      domain: "portfolio.dev",
-      storage: "1.2 GB / 5 GB",
-      messages: 234,
-      status: "active",
-    },
-  ];
+  const handleCreateMailbox = async () => {
+    try {
+      await createEmail.mutateAsync({
+        email_address: `${newEmail.username}@${newEmail.domain}`,
+        quota_mb: newEmail.quota * 1024,
+      });
+      toast({
+        title: "Mailbox Created",
+        description: "Your new email mailbox has been created successfully.",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to create mailbox.",
+        variant: "destructive",
+      });
+    }
+  };
 
+  // Calculate stats
+  const totalMailboxes = mailboxes?.length || 0;
+  const totalMessages = mailboxes?.reduce((sum, m) => sum + (Number(m.used_mb) || 0), 0) || 0;
+  const activeMailboxes = mailboxes?.filter(m => m.status === 'active').length || 0;
+
+  // Filter mailboxes based on search
+  const filteredMailboxes = mailboxes?.filter(m => 
+    m.email_address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Placeholder recent emails (would come from email API)
   const recentEmails = [
     {
       id: 1,
@@ -95,23 +104,7 @@ const Email = () => {
       unread: false,
       starred: false,
     },
-    {
-      id: 4,
-      from: "support@github.com",
-      subject: "Security Alert: New sign-in",
-      preview: "A new sign-in was detected on your account from...",
-      time: "Yesterday",
-      unread: false,
-      starred: true,
-    },
   ];
-
-  const handleCreateMailbox = () => {
-    toast({
-      title: "Mailbox Created",
-      description: "Your new email mailbox has been created successfully.",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,22 +135,46 @@ const Email = () => {
                 <div className="space-y-2">
                   <Label>Email Address</Label>
                   <div className="flex gap-2">
-                    <Input placeholder="username" className="flex-1" />
+                    <Input 
+                      placeholder="username" 
+                      className="flex-1" 
+                      value={newEmail.username}
+                      onChange={(e) => setNewEmail({ ...newEmail, username: e.target.value })}
+                    />
                     <span className="flex items-center text-muted-foreground">@</span>
-                    <Input placeholder="domain.com" className="flex-1" />
+                    <Input 
+                      placeholder="domain.com" 
+                      className="flex-1" 
+                      value={newEmail.domain}
+                      onChange={(e) => setNewEmail({ ...newEmail, domain: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Password</Label>
-                  <Input type="password" placeholder="Set a secure password" />
+                  <Input 
+                    type="password" 
+                    placeholder="Set a secure password"
+                    value={newEmail.password}
+                    onChange={(e) => setNewEmail({ ...newEmail, password: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Storage Quota</Label>
-                  <Input type="number" placeholder="10" defaultValue="10" />
+                  <Input 
+                    type="number" 
+                    placeholder="10" 
+                    value={newEmail.quota}
+                    onChange={(e) => setNewEmail({ ...newEmail, quota: parseInt(e.target.value) || 10 })}
+                  />
                   <p className="text-xs text-muted-foreground">Storage in GB</p>
                 </div>
-                <Button onClick={handleCreateMailbox} className="w-full">
-                  Create Mailbox
+                <Button 
+                  onClick={handleCreateMailbox} 
+                  className="w-full"
+                  disabled={createEmail.isPending}
+                >
+                  {createEmail.isPending ? "Creating..." : "Create Mailbox"}
                 </Button>
               </div>
             </DialogContent>
@@ -173,7 +190,11 @@ const Email = () => {
                   <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">3</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <p className="text-2xl font-bold truncate">{activeMailboxes}</p>
+                  )}
                   <p className="text-sm text-muted-foreground truncate">Active Mailboxes</p>
                 </div>
               </div>
@@ -187,8 +208,12 @@ const Email = () => {
                   <Inbox className="h-6 w-6 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">1,937</p>
-                  <p className="text-sm text-muted-foreground truncate">Total Messages</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold truncate">{totalMailboxes}</p>
+                  )}
+                  <p className="text-sm text-muted-foreground truncate">Total Mailboxes</p>
                 </div>
               </div>
             </CardContent>
@@ -250,59 +275,77 @@ const Email = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mailboxes.map((mailbox) => (
-                    <div
-                      key={mailbox.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-all bg-background/50 gap-4"
-                    >
-                      <div className="flex items-center gap-4 min-w-0 flex-1">
-                        <div className="p-3 rounded-lg bg-primary/10 flex-shrink-0">
-                          <Mail className="h-5 w-5 text-primary" />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                ) : filteredMailboxes?.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Mailboxes</h3>
+                    <p className="text-muted-foreground">Create your first email mailbox to get started.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredMailboxes?.map((mailbox) => (
+                      <div
+                        key={mailbox.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-all bg-background/50 gap-4"
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="p-3 rounded-lg bg-primary/10 flex-shrink-0">
+                            <Mail className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold truncate">{mailbox.email_address}</h4>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {mailbox.used_mb || 0} MB / {mailbox.quota_mb || 10240} MB
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-semibold truncate">{mailbox.email}</h4>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {mailbox.messages} messages • {mailbox.storage}
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={`whitespace-nowrap ${
+                              mailbox.status === 'active'
+                                ? "bg-green-500/10 text-green-500 border-green-500/20"
+                                : "bg-gray-500/10 text-gray-500 border-gray-500/20"
+                            }`}
+                          >
+                            {mailbox.status}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-popover">
+                              <DropdownMenuItem>
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Forward className="mr-2 h-4 w-4" />
+                                Setup Forwarding
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Filter className="mr-2 h-4 w-4" />
+                                Spam Rules
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className="bg-green-500/10 text-green-500 border-green-500/20 whitespace-nowrap"
-                        >
-                          {mailbox.status}
-                        </Badge>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem>
-                              <Settings className="mr-2 h-4 w-4" />
-                              Settings
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Forward className="mr-2 h-4 w-4" />
-                              Setup Forwarding
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Filter className="mr-2 h-4 w-4" />
-                              Spam Rules
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
