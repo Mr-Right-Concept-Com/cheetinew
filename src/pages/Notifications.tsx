@@ -15,13 +15,14 @@ import {
   Clock,
   Trash2,
 } from "lucide-react";
-import { useNotifications, useMarkNotificationAsRead, useDeleteNotification } from "@/hooks/useNotifications";
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
 import { format } from "date-fns";
 import { LucideIcon } from "lucide-react";
 
 const Notifications = () => {
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
+  const markAllAsRead = useMarkAllNotificationsAsRead();
   const deleteNotification = useDeleteNotification();
 
   const getIconForType = (type: string): LucideIcon => {
