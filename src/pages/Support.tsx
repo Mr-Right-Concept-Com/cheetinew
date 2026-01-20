@@ -291,7 +291,7 @@ const Support = () => {
                             className={
                               ticket.status === "open"
                                 ? "bg-primary/10 text-primary border-none"
-                                : ticket.status === "answered"
+                                : ticket.status === "in_progress"
                                 ? "bg-accent/10 text-accent border-none"
                                 : "bg-muted"
                             }
