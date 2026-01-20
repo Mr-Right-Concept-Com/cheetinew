@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users,
   Server,
@@ -18,8 +19,10 @@ import {
   BarChart3,
   Globe,
   RefreshCw,
+  TicketIcon,
+  Cloud,
+  HardDrive,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -30,92 +33,39 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
+import { 
+  useAdminMetrics, 
+  useRevenueByMonth, 
+  useUserGrowth, 
+  useRevenueByService,
+  useRecentActivity,
+  useServerStatus 
+} from "@/hooks/useAdminMetrics";
 
 const AdminDashboard = () => {
-  // Investor Metrics
-  const investorMetrics = {
-    mrr: { value: 24500, change: 12.5, target: 30000 },
-    arr: { value: 294000, change: 12.5 },
-    ltv: { value: 1250, change: 8.3 },
-    cac: { value: 85, change: -5.2 },
-    ltvCacRatio: 14.7,
-    churnRate: 2.1,
-    netRevenueRetention: 115,
-    paybackPeriod: 3.2,
-  };
-
-  // MRR Trend Data
-  const mrrTrendData = [
-    { month: "Jan", mrr: 15200, users: 890 },
-    { month: "Feb", mrr: 16800, users: 945 },
-    { month: "Mar", mrr: 17500, users: 987 },
-    { month: "Apr", mrr: 19200, users: 1023 },
-    { month: "May", mrr: 20100, users: 1078 },
-    { month: "Jun", mrr: 21500, users: 1112 },
-    { month: "Jul", mrr: 22300, users: 1156 },
-    { month: "Aug", mrr: 23100, users: 1189 },
-    { month: "Sep", mrr: 23800, users: 1212 },
-    { month: "Oct", mrr: 24100, users: 1234 },
-    { month: "Nov", mrr: 24500, users: 1247 },
-    { month: "Dec", mrr: 25800, users: 1285 },
-  ];
-
-  // Revenue by Service (for pie chart)
-  const revenueByService = [
-    { name: "Hosting", value: 12400, color: "hsl(var(--primary))" },
-    { name: "Cloud VPS", value: 7350, color: "hsl(var(--accent))" },
-    { name: "Domains", value: 2940, color: "hsl(210, 100%, 50%)" },
-    { name: "Email", value: 1225, color: "hsl(142, 76%, 36%)" },
-    { name: "Add-ons", value: 585, color: "hsl(280, 70%, 50%)" },
-  ];
-
-  const revenueBreakdown = [
-    { name: "Hosting", value: 12400, percentage: 50.6, color: "bg-primary" },
-    { name: "Cloud VPS", value: 7350, percentage: 30.0, color: "bg-accent" },
-    { name: "Domains", value: 2940, percentage: 12.0, color: "bg-blue-500" },
-    { name: "Email", value: 1225, percentage: 5.0, color: "bg-green-500" },
-    { name: "Add-ons", value: 585, percentage: 2.4, color: "bg-purple-500" },
-  ];
-
-  const growthMetrics = [
-    { label: "New Signups (This Month)", value: 347, change: 23.5 },
-    { label: "Converted to Paid", value: 89, change: 18.2 },
-    { label: "Conversion Rate", value: "25.6%", change: 4.1 },
-    { label: "Active Subscriptions", value: 1247, change: 8.7 },
-  ];
-
-  const userActivity = [
-    { user: "john@example.com", action: "Upgraded to Pro Plan", time: "2 min ago", type: "success", revenue: "+$29.99" },
-    { user: "sarah@example.com", action: "Registered 3 domains", time: "15 min ago", type: "success", revenue: "+$38.97" },
-    { user: "mike@example.com", action: "Payment failed", time: "32 min ago", type: "error", revenue: "-$49.99" },
-    { user: "emma@example.com", action: "Deployed Cloud VPS", time: "1 hour ago", type: "success", revenue: "+$79.99" },
-    { user: "alex@example.com", action: "Cancelled subscription", time: "2 hours ago", type: "warning", revenue: "-$29.99" },
-  ];
-
-  const systemAlerts = [
-    { title: "High CPU usage on Server-03", severity: "high", time: "5 min ago", impact: "12 users affected" },
-    { title: "Backup failed for VPS-147", severity: "medium", time: "1 hour ago", impact: "1 user affected" },
-    { title: "SSL renewal needed for 5 domains", severity: "low", time: "3 hours ago", impact: "5 domains" },
-    { title: "Low disk space on Server-12", severity: "high", time: "4 hours ago", impact: "8 users affected" },
-  ];
-
-  const serverStatus = [
-    { name: "US-East-01", status: "online", cpu: 45, ram: 62, region: "New York", users: 312 },
-    { name: "EU-West-01", status: "online", cpu: 38, ram: 54, region: "London", users: 287 },
-    { name: "Asia-SE-01", status: "warning", cpu: 87, ram: 78, region: "Singapore", users: 198 },
-    { name: "US-West-01", status: "online", cpu: 52, ram: 48, region: "San Francisco", users: 256 },
-    { name: "Africa-01", status: "online", cpu: 23, ram: 31, region: "Lagos", users: 124 },
-  ];
+  const { data: metrics, isLoading: metricsLoading } = useAdminMetrics();
+  const { data: revenueByMonth } = useRevenueByMonth(12);
+  const { data: userGrowth } = useUserGrowth(30);
+  const { data: revenueByService } = useRevenueByService();
+  const { data: recentActivity } = useRecentActivity(10);
+  const { data: serverStatus } = useServerStatus();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
   };
+
+  // Transform user growth data for chart
+  const userGrowthChartData = userGrowth?.slice(-12).map(d => ({
+    date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    users: d.users,
+  })) || [];
+
+  // Transform revenue data for chart
+  const revenueChartData = revenueByMonth || [];
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -146,17 +96,21 @@ const AdminDashboard = () => {
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                 <ArrowUpRight className="h-4 w-4" />
-                +{investorMetrics.mrr.change}%
+                +12.5%
               </div>
             </div>
-            <p className="text-2xl md:text-3xl font-bold text-primary">{formatCurrency(investorMetrics.mrr.value)}</p>
+            {metricsLoading ? (
+              <Skeleton className="h-9 w-32" />
+            ) : (
+              <p className="text-2xl md:text-3xl font-bold text-primary">{formatCurrency(metrics?.mrr || 0)}</p>
+            )}
             <p className="text-xs md:text-sm text-muted-foreground mt-1">Monthly Recurring Revenue</p>
             <div className="mt-3">
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Target: {formatCurrency(investorMetrics.mrr.target)}</span>
-                <span className="font-medium">{Math.round((investorMetrics.mrr.value / investorMetrics.mrr.target) * 100)}%</span>
+                <span className="text-muted-foreground">Target: $30,000</span>
+                <span className="font-medium">{Math.round(((metrics?.mrr || 0) / 30000) * 100)}%</span>
               </div>
-              <Progress value={(investorMetrics.mrr.value / investorMetrics.mrr.target) * 100} className="h-2" />
+              <Progress value={((metrics?.mrr || 0) / 30000) * 100} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -169,10 +123,14 @@ const AdminDashboard = () => {
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                 <ArrowUpRight className="h-4 w-4" />
-                +{investorMetrics.arr.change}%
+                +12.5%
               </div>
             </div>
-            <p className="text-2xl md:text-3xl font-bold text-accent">{formatCurrency(investorMetrics.arr.value)}</p>
+            {metricsLoading ? (
+              <Skeleton className="h-9 w-32" />
+            ) : (
+              <p className="text-2xl md:text-3xl font-bold text-accent">{formatCurrency(metrics?.arr || 0)}</p>
+            )}
             <p className="text-xs md:text-sm text-muted-foreground mt-1">Annual Recurring Revenue</p>
             <p className="text-xs text-muted-foreground mt-3">Projected from current MRR</p>
           </CardContent>
@@ -186,12 +144,16 @@ const AdminDashboard = () => {
               </div>
               <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                 <ArrowUpRight className="h-4 w-4" />
-                +{investorMetrics.ltv.change}%
+                +8.3%
               </div>
             </div>
-            <p className="text-2xl md:text-3xl font-bold text-green-500">{formatCurrency(investorMetrics.ltv.value)}</p>
-            <p className="text-xs md:text-sm text-muted-foreground mt-1">Customer Lifetime Value</p>
-            <p className="text-xs text-muted-foreground mt-3">LTV:CAC Ratio: <span className="font-semibold text-green-500">{investorMetrics.ltvCacRatio}x</span></p>
+            {metricsLoading ? (
+              <Skeleton className="h-9 w-24" />
+            ) : (
+              <p className="text-2xl md:text-3xl font-bold text-green-500">{(metrics?.ltvCacRatio || 0).toFixed(1)}x</p>
+            )}
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">LTV:CAC Ratio</p>
+            <p className="text-xs text-muted-foreground mt-3">Target: &gt;3.0x</p>
           </CardContent>
         </Card>
 
@@ -205,9 +167,13 @@ const AdminDashboard = () => {
                 Healthy
               </Badge>
             </div>
-            <p className="text-2xl md:text-3xl font-bold text-blue-500">{investorMetrics.netRevenueRetention}%</p>
+            {metricsLoading ? (
+              <Skeleton className="h-9 w-20" />
+            ) : (
+              <p className="text-2xl md:text-3xl font-bold text-blue-500">{metrics?.netRevenueRetention || 0}%</p>
+            )}
             <p className="text-xs md:text-sm text-muted-foreground mt-1">Net Revenue Retention</p>
-            <p className="text-xs text-muted-foreground mt-3">Churn Rate: <span className="font-semibold">{investorMetrics.churnRate}%</span></p>
+            <p className="text-xs text-muted-foreground mt-3">Churn Rate: <span className="font-semibold">{metrics?.churnRate || 0}%</span></p>
           </CardContent>
         </Card>
       </div>
@@ -218,15 +184,15 @@ const AdminDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <LineChartIcon className="h-5 w-5 text-primary" />
-              MRR Trend
+              Revenue Trend
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mrrTrendData}>
+                <AreaChart data={revenueChartData}>
                   <defs>
-                    <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
@@ -241,14 +207,14 @@ const AdminDashboard = () => {
                       borderRadius: '8px',
                     }}
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'MRR']}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
                   <Area
                     type="monotone"
-                    dataKey="mrr"
+                    dataKey="revenue"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
-                    fill="url(#mrrGradient)"
+                    fill="url(#revenueGradient)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -260,15 +226,15 @@ const AdminDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <Users className="h-5 w-5 text-accent" />
-              User Growth
+              User Growth (30 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mrrTrendData}>
+                <LineChart data={userGrowthChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" className="text-xs fill-muted-foreground" />
+                  <XAxis dataKey="date" className="text-xs fill-muted-foreground" />
                   <YAxis className="text-xs fill-muted-foreground" />
                   <Tooltip
                     contentStyle={{
@@ -292,7 +258,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Revenue Breakdown Chart & Growth Metrics */}
+      {/* Revenue by Service & Quick Stats */}
       <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
         <Card>
           <CardHeader className="pb-3">
@@ -306,7 +272,7 @@ const AdminDashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={revenueByService}
+                    data={revenueByService || []}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -315,7 +281,7 @@ const AdminDashboard = () => {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {revenueByService.map((entry, index) => (
+                    {(revenueByService || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -337,58 +303,175 @@ const AdminDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Growth Metrics
+              Key Metrics
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {growthMetrics.map((metric, i) => (
-              <div key={i} className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-muted-foreground truncate">{metric.label}</p>
-                  <p className="text-xl md:text-2xl font-bold">{metric.value}</p>
-                </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${metric.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {metric.change >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                  {metric.change >= 0 ? '+' : ''}{metric.change}%
+            <div className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  {metricsLoading ? (
+                    <Skeleton className="h-7 w-16" />
+                  ) : (
+                    <p className="text-xl font-bold">{metrics?.totalUsers.toLocaleString() || 0}</p>
+                  )}
                 </div>
               </div>
-            ))}
+              <Badge className="bg-green-500/10 text-green-500 border-none">
+                +{metrics?.newUsersThisMonth || 0} this month
+              </Badge>
+            </div>
+
+            <div className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
+              <div className="flex items-center gap-3">
+                <Globe className="h-5 w-5 text-accent" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Domains</p>
+                  {metricsLoading ? (
+                    <Skeleton className="h-7 w-12" />
+                  ) : (
+                    <p className="text-xl font-bold">{metrics?.totalDomains || 0}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
+              <div className="flex items-center gap-3">
+                <HardDrive className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Hosting Accounts</p>
+                  {metricsLoading ? (
+                    <Skeleton className="h-7 w-12" />
+                  ) : (
+                    <p className="text-xl font-bold">{metrics?.totalHosting || 0}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
+              <div className="flex items-center gap-3">
+                <Cloud className="h-5 w-5 text-purple-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Cloud Instances</p>
+                  {metricsLoading ? (
+                    <Skeleton className="h-7 w-12" />
+                  ) : (
+                    <p className="text-xl font-bold">{metrics?.totalCloudInstances || 0}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 md:p-4 border rounded-lg bg-background/50">
+              <div className="flex items-center gap-3">
+                <TicketIcon className="h-5 w-5 text-yellow-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Open Tickets</p>
+                  {metricsLoading ? (
+                    <Skeleton className="h-7 w-12" />
+                  ) : (
+                    <p className="text-xl font-bold">{metrics?.openTickets || 0}</p>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Avg response: {metrics?.ticketResponseTime || 0}h
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Revenue Breakdown List */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-accent" />
-            Revenue Breakdown
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {revenueBreakdown.map((item, i) => (
-            <div key={i} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                  <span className="font-medium">{item.name}</span>
+      {/* Server Status & Recent Activity */}
+      <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <Server className="h-5 w-5 text-primary" />
+              Server Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">CPU Usage</span>
+                  <span className="font-medium">{Math.round(serverStatus?.cpuUsage || 0)}%</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-muted-foreground">{item.percentage}%</span>
-                  <span className="font-semibold">{formatCurrency(item.value)}</span>
-                </div>
+                <Progress value={serverStatus?.cpuUsage || 0} className="h-2" />
               </div>
-              <Progress value={item.percentage} className="h-2" />
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Memory Usage</span>
+                  <span className="font-medium">{Math.round(serverStatus?.memoryUsage || 0)}%</span>
+                </div>
+                <Progress value={serverStatus?.memoryUsage || 0} className="h-2" />
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Disk Usage</span>
+                  <span className="font-medium">{Math.round(serverStatus?.diskUsage || 0)}%</span>
+                </div>
+                <Progress value={serverStatus?.diskUsage || 0} className="h-2" />
+              </div>
             </div>
-          ))}
-          <div className="pt-3 border-t flex justify-between items-center">
-            <span className="font-semibold">Total MRR</span>
-            <span className="text-xl font-bold text-primary">{formatCurrency(investorMetrics.mrr.value)}</span>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="pt-3 border-t grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Network In</p>
+                <p className="font-semibold">{(serverStatus?.networkIn || 0).toFixed(1)} GB/s</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Network Out</p>
+                <p className="font-semibold">{(serverStatus?.networkOut || 0).toFixed(1)} GB/s</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Active Connections</p>
+                <p className="font-semibold">{serverStatus?.activeConnections || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Quick Stats */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <Activity className="h-5 w-5 text-accent" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-[350px] overflow-y-auto">
+              {recentActivity && recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg bg-background/50">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{activity.action}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.resource_type && (
+                          <span className="capitalize">{activity.resource_type} • </span>
+                        )}
+                        {new Date(activity.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No recent activity</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -396,7 +479,11 @@ const AdminDashboard = () => {
               <Users className="h-5 w-5 text-primary" />
               <TrendingUp className="h-4 w-4 text-green-500" />
             </div>
-            <p className="text-xl font-bold">1,247</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-16" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.totalUsers.toLocaleString() || 0}</p>
+            )}
             <p className="text-xs text-muted-foreground">Total Users</p>
           </CardContent>
         </Card>
@@ -404,11 +491,15 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <Server className="h-5 w-5 text-accent" />
-              <Activity className="h-4 w-4 text-green-500" />
+              <Activity className="h-5 w-5 text-accent" />
+              <TrendingUp className="h-4 w-4 text-green-500" />
             </div>
-            <p className="text-xl font-bold">487</p>
-            <p className="text-xs text-muted-foreground">Active Hosts</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-16" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.activeSubscriptions || 0}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Active Subs</p>
           </CardContent>
         </Card>
 
@@ -416,9 +507,12 @@ const AdminDashboard = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Globe className="h-5 w-5 text-blue-500" />
-              <Badge variant="outline" className="text-xs">Active</Badge>
             </div>
-            <p className="text-xl font-bold">1,893</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-12" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.totalDomains || 0}</p>
+            )}
             <p className="text-xs text-muted-foreground">Domains</p>
           </CardContent>
         </Card>
@@ -426,177 +520,45 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <Badge variant="destructive" className="text-xs">3</Badge>
+              <HardDrive className="h-5 w-5 text-green-500" />
             </div>
-            <p className="text-xl font-bold">Alerts</p>
-            <p className="text-xs text-muted-foreground">Requires Action</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-12" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.totalHosting || 0}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Hosting</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <Activity className="h-5 w-5 text-green-500" />
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">99.9%</Badge>
+              <Cloud className="h-5 w-5 text-purple-500" />
             </div>
-            <p className="text-xl font-bold">Uptime</p>
-            <p className="text-xs text-muted-foreground">30-day average</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-12" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.totalCloudInstances || 0}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Cloud VPS</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              <Badge variant="outline" className="text-xs">{investorMetrics.cac.change}%</Badge>
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
             </div>
-            <p className="text-xl font-bold">${investorMetrics.cac.value}</p>
-            <p className="text-xs text-muted-foreground">CAC</p>
+            {metricsLoading ? (
+              <Skeleton className="h-7 w-12" />
+            ) : (
+              <p className="text-xl font-bold">{metrics?.openTickets || 0}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Open Tickets</p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity & Alerts */}
-      <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg md:text-xl">Recent Activity</CardTitle>
-              <Link to="/admin/users">
-                <Button variant="ghost" size="sm">View All</Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {userActivity.map((activity, i) => (
-              <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-background/50 gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm truncate">{activity.user}</p>
-                  <p className="text-xs text-muted-foreground truncate">{activity.action}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className={`text-xs font-semibold ${
-                    activity.revenue.startsWith('+') ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {activity.revenue}
-                  </span>
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      activity.type === "success" 
-                        ? "bg-green-500/10 text-green-500 border-green-500/20" 
-                        : activity.type === "error"
-                        ? "bg-red-500/10 text-red-500 border-red-500/20"
-                        : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
-                    }`}
-                  >
-                    {activity.time}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                System Alerts
-                <Badge variant="destructive" className="text-xs">3 New</Badge>
-              </CardTitle>
-              <Link to="/admin/security">
-                <Button variant="ghost" size="sm">Manage</Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {systemAlerts.map((alert, i) => (
-              <div key={i} className="flex items-start justify-between p-3 border rounded-lg bg-background/50 gap-2">
-                <div className="flex items-start gap-3 min-w-0 flex-1">
-                  <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                    alert.severity === "high" ? "text-destructive" : 
-                    alert.severity === "medium" ? "text-yellow-500" : "text-muted-foreground"
-                  }`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm">{alert.title}</p>
-                    <p className="text-xs text-muted-foreground">{alert.impact}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      alert.severity === "high" ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                      alert.severity === "medium" ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
-                      "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                    }`}
-                  >
-                    {alert.severity}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">{alert.time}</span>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Server Status */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg md:text-xl">Global Infrastructure</CardTitle>
-            <Link to="/admin/hosting">
-              <Button variant="outline" size="sm">Manage Servers</Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {serverStatus.map((server, i) => (
-              <div key={i} className="p-4 border rounded-lg space-y-3 bg-background/50">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm truncate flex-1">{server.name}</p>
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs flex-shrink-0 ${
-                      server.status === "online" 
-                        ? "bg-green-500/10 text-green-500 border-green-500/20" 
-                        : "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
-                    }`}
-                  >
-                    {server.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Globe className="h-3 w-3" />
-                  {server.region}
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">CPU</span>
-                    <span className={`font-medium ${server.cpu > 80 ? 'text-red-500' : ''}`}>{server.cpu}%</span>
-                  </div>
-                  <Progress value={server.cpu} className={`h-1.5 ${server.cpu > 80 ? '[&>div]:bg-red-500' : ''}`} />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">RAM</span>
-                    <span className={`font-medium ${server.ram > 80 ? 'text-red-500' : ''}`}>{server.ram}%</span>
-                  </div>
-                  <Progress value={server.ram} className={`h-1.5 ${server.ram > 80 ? '[&>div]:bg-red-500' : ''}`} />
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground pt-1 border-t">
-                  <Users className="h-3 w-3" />
-                  {server.users} active users
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

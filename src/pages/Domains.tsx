@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Globe,
   Search,
@@ -13,7 +14,6 @@ import {
   Shield,
   Lock,
   Clock,
-  ExternalLink,
   Settings,
   RefreshCw,
   Trash2,
@@ -44,52 +44,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDomains, useCreateDomain, useDomainStats, useDNSRecords, useDeleteDomain, Domain } from "@/hooks/useDomains";
+import { format } from "date-fns";
 
 const Domains = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newDomain, setNewDomain] = useState({ name: "", authCode: "" });
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+  
+  const { data: domains, isLoading } = useDomains();
+  const { data: stats } = useDomainStats();
+  const { data: dnsRecords, isLoading: dnsLoading } = useDNSRecords(selectedDomainId || "");
+  const createDomain = useCreateDomain();
+  const deleteDomain = useDeleteDomain();
 
-  const domains = [
-    {
-      id: 1,
-      name: "mywebsite.com",
-      status: "active",
-      expiry: "2025-06-15",
-      autoRenew: true,
-      privacy: true,
+  const handleRegisterDomain = async () => {
+    if (!newDomain.name) return;
+    
+    const parts = newDomain.name.split(".");
+    const tld = parts.length > 1 ? parts.pop() : "com";
+    const name = parts.join(".");
+    
+    await createDomain.mutateAsync({
+      name: newDomain.name,
+      tld,
       registrar: "CheetiHost",
-    },
-    {
-      id: 2,
-      name: "blog.example.com",
-      status: "active",
-      expiry: "2025-03-20",
-      autoRenew: true,
-      privacy: true,
-      registrar: "CheetiHost",
-    },
-    {
-      id: 3,
-      name: "shop.mystore.com",
-      status: "expiring-soon",
-      expiry: "2024-12-25",
-      autoRenew: false,
-      privacy: false,
-      registrar: "External",
-    },
+      auto_renew: true,
+      privacy_enabled: true,
+    });
+    
+    setNewDomain({ name: "", authCode: "" });
+    setIsDialogOpen(false);
+  };
+
+  const getStatusBadge = (status: Domain["status"], expiryDate: string | null) => {
+    if (status === "expired") {
+      return { className: "bg-red-500/10 text-red-500 border-none", label: "Expired" };
+    }
+    if (expiryDate) {
+      const expiry = new Date(expiryDate);
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      if (expiry <= thirtyDaysFromNow) {
+        return { className: "bg-yellow-500/10 text-yellow-500 border-none", label: "Expiring Soon" };
+      }
+    }
+    if (status === "active") {
+      return { className: "bg-green-500/10 text-green-500 border-none", label: "Active" };
+    }
+    return { className: "bg-muted text-muted-foreground border-none", label: status };
+  };
+
+  const statsData = [
+    { label: "Total Domains", value: stats?.total.toString() || "0", icon: Globe },
+    { label: "Active", value: stats?.active.toString() || "0", icon: Shield },
+    { label: "Expiring Soon", value: stats?.expiringSoon.toString() || "0", icon: Clock },
   ];
 
-  const stats = [
-    { label: "Total Domains", value: "3", icon: Globe },
-    { label: "Active", value: "3", icon: Shield },
-    { label: "Expiring Soon", value: "1", icon: Clock },
-  ];
-
-  const dnsRecords = [
-    { type: "A", name: "@", value: "192.168.1.1", ttl: "3600" },
-    { type: "CNAME", name: "www", value: "mywebsite.com", ttl: "3600" },
-    { type: "MX", name: "@", value: "mail.mywebsite.com", ttl: "3600" },
-    { type: "TXT", name: "@", value: "v=spf1 include:_spf.google.com ~all", ttl: "3600" },
-  ];
+  const filteredDomains = domains?.filter(d => 
+    d.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,10 +133,42 @@ const Domains = () => {
                     className="pl-9 md:pl-10 h-10 md:h-12 text-sm md:text-lg"
                   />
                 </div>
-                <Button size="lg" className="gap-2 w-full sm:w-auto h-10 md:h-12">
-                  <Search className="h-4 w-4" />
-                  Search Domain
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" className="gap-2 w-full sm:w-auto h-10 md:h-12">
+                      <Plus className="h-4 w-4" />
+                      Register Domain
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Register Domain</DialogTitle>
+                      <DialogDescription>
+                        Register a new domain with CheetiHost
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="domainName">Domain Name</Label>
+                        <Input 
+                          id="domainName" 
+                          placeholder="example.com" 
+                          value={newDomain.name}
+                          onChange={(e) => setNewDomain(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        className="w-full" 
+                        onClick={handleRegisterDomain}
+                        disabled={createDomain.isPending || !newDomain.name}
+                      >
+                        {createDomain.isPending ? "Registering..." : "Register Domain"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
               <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm">
                 <span className="text-muted-foreground">.com - $12.99/yr</span>
@@ -136,7 +183,7 @@ const Domains = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {stats.map((stat, index) => {
+          {statsData.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <Card key={index} className="bg-card/50 backdrop-blur">
@@ -146,7 +193,11 @@ const Domains = () => {
                       <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xl md:text-2xl font-bold truncate">{stat.value}</p>
+                      {isLoading ? (
+                        <Skeleton className="h-8 w-12" />
+                      ) : (
+                        <p className="text-xl md:text-2xl font-bold truncate">{stat.value}</p>
+                      )}
                       <p className="text-xs md:text-sm text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
@@ -172,120 +223,126 @@ const Domains = () => {
                     <CardTitle className="text-xl md:text-2xl">Your Domains</CardTitle>
                     <CardDescription>Manage your registered domains</CardDescription>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2 w-full sm:w-auto">
-                        <Plus className="h-4 w-4" />
-                        Transfer Domain
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Transfer Domain</DialogTitle>
-                        <DialogDescription>
-                          Transfer your domain to CheetiHost
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="transferDomain">Domain Name</Label>
-                          <Input id="transferDomain" placeholder="example.com" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="authCode">Authorization Code</Label>
-                          <Input id="authCode" placeholder="EPP/Auth code" />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button className="w-full">Start Transfer</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 md:space-y-4">
-                  {domains.map((domain) => (
-                    <div
-                      key={domain.id}
-                      className="p-4 md:p-6 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all"
-                    >
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div className="flex items-start gap-3 md:gap-4 min-w-0 flex-1">
-                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Globe className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <h3 className="font-semibold text-base md:text-lg truncate">{domain.name}</h3>
-                              <Badge
-                                variant={domain.status === "active" ? "default" : "secondary"}
-                                className={`flex-shrink-0 ${
-                                  domain.status === "active"
-                                    ? "bg-green-500/10 text-green-500 border-none"
-                                    : "bg-yellow-500/10 text-yellow-500 border-none"
-                                }`}
-                              >
-                                {domain.status === "active" ? "Active" : "Expiring Soon"}
-                              </Badge>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs md:text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">Expires: {domain.expiry}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <RefreshCw className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">Auto-Renew: {domain.autoRenew ? "On" : "Off"}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Shield className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">Privacy: {domain.privacy ? "Protected" : "Off"}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 flex-shrink-0">
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Settings className="h-4 w-4" />
-                            <span className="hidden sm:inline">Manage</span>
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="gap-2">
-                                <FileEdit className="h-4 w-4" />
-                                Edit DNS
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
-                                <Shield className="h-4 w-4" />
-                                Privacy Settings
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
-                                <RefreshCw className="h-4 w-4" />
-                                Renew Domain
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
-                                <Lock className="h-4 w-4" />
-                                Lock/Unlock
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2 text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="p-6 rounded-lg border border-border">
+                        <Skeleton className="h-12 w-full" />
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : filteredDomains.length > 0 ? (
+                  <div className="space-y-3 md:space-y-4">
+                    {filteredDomains.map((domain) => {
+                      const statusBadge = getStatusBadge(domain.status, domain.expiry_date);
+                      
+                      return (
+                        <div
+                          key={domain.id}
+                          className="p-4 md:p-6 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all"
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3 md:gap-4 min-w-0 flex-1">
+                              <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <Globe className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                  <h3 className="font-semibold text-base md:text-lg truncate">{domain.name}</h3>
+                                  <Badge
+                                    variant="default"
+                                    className={statusBadge.className}
+                                  >
+                                    {statusBadge.label}
+                                  </Badge>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs md:text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">
+                                      Expires: {domain.expiry_date 
+                                        ? format(new Date(domain.expiry_date), "MMM d, yyyy")
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <RefreshCw className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">Auto-Renew: {domain.auto_renew ? "On" : "Off"}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Shield className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">Privacy: {domain.privacy_enabled ? "Protected" : "Off"}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-2"
+                                onClick={() => setSelectedDomainId(domain.id)}
+                              >
+                                <Settings className="h-4 w-4" />
+                                <span className="hidden sm:inline">Manage</span>
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="gap-2"
+                                    onClick={() => setSelectedDomainId(domain.id)}
+                                  >
+                                    <FileEdit className="h-4 w-4" />
+                                    Edit DNS
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="gap-2">
+                                    <Shield className="h-4 w-4" />
+                                    Privacy Settings
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="gap-2">
+                                    <RefreshCw className="h-4 w-4" />
+                                    Renew Domain
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="gap-2">
+                                    <Lock className="h-4 w-4" />
+                                    Lock/Unlock
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="gap-2 text-destructive"
+                                    onClick={() => deleteDomain.mutate(domain.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Globe className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No domains yet</h3>
+                    <p className="text-muted-foreground mb-4">Register your first domain to get started</p>
+                    <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Register Domain
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -297,65 +354,94 @@ const Domains = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <CardTitle className="text-xl md:text-2xl">DNS Records</CardTitle>
-                    <CardDescription>Manage DNS records for mywebsite.com</CardDescription>
+                    <CardDescription>
+                      {selectedDomainId 
+                        ? `Manage DNS records for ${domains?.find(d => d.id === selectedDomainId)?.name || "selected domain"}`
+                        : "Select a domain to manage DNS records"}
+                    </CardDescription>
                   </div>
-                  <Button className="gap-2 w-full sm:w-auto">
-                    <Plus className="h-4 w-4" />
-                    Add Record
-                  </Button>
+                  {selectedDomainId && (
+                    <Button className="gap-2 w-full sm:w-auto">
+                      <Plus className="h-4 w-4" />
+                      Add Record
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[80px] md:w-[100px]">Type</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead className="hidden md:table-cell">Value</TableHead>
-                        <TableHead className="w-[80px] md:w-[100px]">TTL</TableHead>
-                        <TableHead className="w-[80px]">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dnsRecords.map((record, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono text-xs">
-                              {record.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-mono text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
-                            {record.name}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell font-mono text-xs md:text-sm truncate max-w-xs">
-                            {record.value}
-                          </TableCell>
-                          <TableCell className="text-xs md:text-sm">{record.ttl}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="gap-2">
-                                  <FileEdit className="h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                {!selectedDomainId ? (
+                  <div className="text-center py-12">
+                    <Globe className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Select a domain from the "My Domains" tab to manage DNS records</p>
+                  </div>
+                ) : dnsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                ) : dnsRecords && dnsRecords.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[80px] md:w-[100px]">Type</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Value</TableHead>
+                          <TableHead className="w-[80px] md:w-[100px]">TTL</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {dnsRecords.map((record) => (
+                          <TableRow key={record.id}>
+                            <TableCell>
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {record.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-mono text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
+                              {record.name}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell font-mono text-xs md:text-sm truncate max-w-xs">
+                              {record.value}
+                            </TableCell>
+                            <TableCell className="text-xs md:text-sm">{record.ttl}</TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem className="gap-2">
+                                    <FileEdit className="h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="gap-2 text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <FileEdit className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No DNS records</h3>
+                    <p className="text-muted-foreground mb-4">Add your first DNS record</p>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Record
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -397,7 +483,7 @@ const Domains = () => {
                 <Lock className="h-5 w-5 md:h-6 md:w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-base md:text-lg mb-1">Domain Lock</h3>
+                <h3 className="font-semibold text-base md:text-lg mb-1">Transfer Lock</h3>
                 <p className="text-xs md:text-sm text-muted-foreground">
                   Prevent unauthorized transfers
                 </p>

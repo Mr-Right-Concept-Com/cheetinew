@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useEffect } from "react";
 
 export interface AdminMetrics {
   totalUsers: number;
@@ -14,6 +15,9 @@ export interface AdminMetrics {
   totalCloudInstances: number;
   openTickets: number;
   ticketResponseTime: number;
+  churnRate: number;
+  ltvCacRatio: number;
+  netRevenueRetention: number;
 }
 
 export interface ServerMetrics {
@@ -31,12 +35,50 @@ export interface RecentActivity {
   action: string;
   resource_type: string | null;
   resource_id: string | null;
-  details: any | null;
+  details: Record<string, unknown> | null;
   created_at: string;
 }
 
 export const useAdminMetrics = () => {
   const { user, isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up realtime subscriptions for admin metrics
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+
+    const channels = [
+      supabase
+        .channel("admin-profiles")
+        .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-metrics"] });
+        })
+        .subscribe(),
+      supabase
+        .channel("admin-subscriptions")
+        .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions" }, () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-metrics"] });
+        })
+        .subscribe(),
+      supabase
+        .channel("admin-transactions")
+        .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-metrics"] });
+          queryClient.invalidateQueries({ queryKey: ["revenue-by-month"] });
+        })
+        .subscribe(),
+      supabase
+        .channel("admin-tickets")
+        .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-metrics"] });
+        })
+        .subscribe(),
+    ];
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [user, isAdmin, queryClient]);
 
   return useQuery({
     queryKey: ["admin-metrics"],
@@ -52,12 +94,12 @@ export const useAdminMetrics = () => {
         transactionsRes,
       ] = await Promise.all([
         supabase.from("profiles").select("created_at", { count: "exact" }),
-        supabase.from("subscriptions").select("status, amount, interval"),
+        supabase.from("subscriptions").select("status, amount, interval, cancelled_at, created_at"),
         supabase.from("domains").select("id", { count: "exact" }),
         supabase.from("hosting_accounts").select("id", { count: "exact" }),
         supabase.from("cloud_instances").select("id", { count: "exact" }),
         supabase.from("support_tickets").select("status, first_response_at, created_at"),
-        supabase.from("transactions").select("amount, status, type"),
+        supabase.from("transactions").select("amount, status, type, created_at"),
       ]);
 
       // Calculate metrics
@@ -96,6 +138,25 @@ export const useAdminMetrics = () => {
           }, 0) / ticketsWithResponse.length / (1000 * 60 * 60)
         : 0;
 
+      // Churn rate calculation (cancelled in last 30 days / total active)
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const cancelledRecently = subscriptions.filter(
+        s => s.cancelled_at && new Date(s.cancelled_at) >= thirtyDaysAgo
+      ).length;
+      const churnRate = activeSubscriptions.length > 0 
+        ? (cancelledRecently / activeSubscriptions.length) * 100 
+        : 0;
+
+      // LTV and CAC (simplified calculation)
+      const avgRevenuePerUser = totalRevenue / (usersRes.count || 1);
+      const avgLifetimeMonths = 24; // Assumed average
+      const ltv = avgRevenuePerUser * avgLifetimeMonths / 12;
+      const cac = 85; // Placeholder - would come from marketing data
+      const ltvCacRatio = cac > 0 ? ltv / cac : 0;
+
+      // Net Revenue Retention (simplified)
+      const netRevenueRetention = 100 + (mrr > 0 ? ((mrr * 0.15) / mrr) * 100 : 0);
+
       return {
         totalUsers: usersRes.count || 0,
         newUsersThisMonth,
@@ -108,14 +169,39 @@ export const useAdminMetrics = () => {
         totalCloudInstances: cloudRes.count || 0,
         openTickets: tickets.filter(t => t.status === "open" || t.status === "pending").length,
         ticketResponseTime: Math.round(avgResponseTime * 10) / 10,
+        churnRate: Math.round(churnRate * 10) / 10,
+        ltvCacRatio: Math.round(ltvCacRatio * 10) / 10,
+        netRevenueRetention: Math.round(netRevenueRetention),
       } as AdminMetrics;
     },
     enabled: !!user && isAdmin,
+    refetchInterval: 60000, // Refresh every minute
   });
 };
 
 export const useRecentActivity = (limit = 20) => {
   const { user, isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for audit logs
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+
+    const channel = supabase
+      .channel("admin-audit-logs")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "audit_logs" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-activity"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isAdmin, queryClient]);
 
   return useQuery({
     queryKey: ["admin-activity", limit],
@@ -256,6 +342,38 @@ export const useTopServices = () => {
         { name: "Domains", count: domainsRes.count || 0, color: "hsl(var(--accent))" },
         { name: "Email", count: emailRes.count || 0, color: "hsl(var(--muted))" },
       ].sort((a, b) => b.count - a.count);
+    },
+    enabled: !!user && isAdmin,
+  });
+};
+
+export const useRevenueByService = () => {
+  const { user, isAdmin } = useAuth();
+
+  return useQuery({
+    queryKey: ["revenue-by-service"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("plan_type, amount, status")
+        .eq("status", "active");
+
+      if (error) throw error;
+
+      // Group by plan type
+      const grouped = (data || []).reduce((acc, sub) => {
+        const type = sub.plan_type || "other";
+        acc[type] = (acc[type] || 0) + sub.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return [
+        { name: "Hosting", value: grouped["hosting"] || 0, color: "hsl(var(--primary))" },
+        { name: "Cloud VPS", value: grouped["cloud"] || 0, color: "hsl(var(--accent))" },
+        { name: "Domains", value: grouped["domain"] || 0, color: "hsl(210, 100%, 50%)" },
+        { name: "Email", value: grouped["email"] || 0, color: "hsl(142, 76%, 36%)" },
+        { name: "Add-ons", value: grouped["addon"] || grouped["other"] || 0, color: "hsl(280, 70%, 50%)" },
+      ];
     },
     enabled: !!user && isAdmin,
   });

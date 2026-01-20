@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export interface Domain {
   id: string;
@@ -40,6 +41,33 @@ export interface UpdateDomainInput {
 
 export const useDomains = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("domains-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "domains",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["domains"] });
+          queryClient.invalidateQueries({ queryKey: ["domain-stats"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   return useQuery({
     queryKey: ["domains", user?.id],
@@ -175,6 +203,32 @@ export interface DNSRecord {
 
 export const useDNSRecords = (domainId: string) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up realtime subscription for DNS records
+  useEffect(() => {
+    if (!user || !domainId) return;
+
+    const channel = supabase
+      .channel(`dns-records-${domainId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "dns_records",
+          filter: `domain_id=eq.${domainId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["dns-records", domainId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, domainId, queryClient]);
 
   return useQuery({
     queryKey: ["dns-records", domainId],
