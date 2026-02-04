@@ -36,6 +36,7 @@ const Security = lazy(() => import("./pages/Security"));
 const Unbox = lazy(() => import("./pages/Unbox"));
 const Backups = lazy(() => import("./pages/Backups"));
 const AetherDashboard = lazy(() => import("./pages/AetherDashboard"));
+const GitHubDeploy = lazy(() => import("./pages/GitHubDeploy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin routes
@@ -133,6 +134,7 @@ const App = () => (
             <Route path="/dashboard/unbox" element={<ProtectedRoute><DashboardLayout><Unbox /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/backups" element={<ProtectedRoute><DashboardLayout><Backups /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/aether" element={<ProtectedRoute><DashboardLayout><AetherDashboard /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/dashboard/deploy" element={<ProtectedRoute><DashboardLayout><GitHubDeploy /></DashboardLayout></ProtectedRoute>} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />

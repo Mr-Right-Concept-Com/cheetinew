@@ -16,6 +16,8 @@ import {
   Package,
   Database,
   ShieldCheck,
+  Github,
+  Rocket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +40,7 @@ import mascotCheeti from "@/assets/mascot-cheeti.png";
 const mainMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Aether", url: "/dashboard/aether", icon: Zap },
+  { title: "Deploy", url: "/dashboard/deploy", icon: Rocket },
   { title: "Hosting", url: "/dashboard/hosting", icon: Server },
   { title: "CheetiCloud", url: "/dashboard/cloud", icon: Cloud },
   { title: "Domains", url: "/dashboard/domains", icon: Globe },
