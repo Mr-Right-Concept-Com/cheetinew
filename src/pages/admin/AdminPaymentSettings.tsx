@@ -3,108 +3,134 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
-  CreditCard, 
-  DollarSign, 
-  Settings,
   Check,
   AlertCircle,
   Shield,
-  Smartphone,
   Globe,
   RefreshCw,
+  Smartphone,
+  Eye,
+  EyeOff,
+  Loader2,
+  Key,
 } from "lucide-react";
 import { useState } from "react";
-import { PaymentProvider, EnvironmentMode, TEST_KEYS } from "@/lib/payments/types";
+import { PaymentProvider, TEST_KEYS } from "@/lib/payments/types";
+import { 
+  usePaymentGateways, 
+  useUpdatePaymentGateway, 
+  useToggleGatewayMode,
+  useTestGatewayConnection,
+  PaymentGatewaySettings 
+} from "@/hooks/usePaymentGateways";
 
-// Admin Payment Configuration - Toggle between test and live modes
-
-interface PaymentGatewayConfig {
-  provider: PaymentProvider;
-  displayName: string;
-  logo: string;
-  isEnabled: boolean;
-  mode: EnvironmentMode;
-  publicKey: string;
-  secretKey: string;
-  webhookSecret?: string;
-  supportedCurrencies: string[];
-}
-
-const defaultConfigs: PaymentGatewayConfig[] = [
-  {
-    provider: 'stripe',
-    displayName: 'Stripe',
-    logo: '💳',
-    isEnabled: true,
-    mode: 'test',
-    publicKey: TEST_KEYS.stripe.publicKey,
-    secretKey: '••••••••••••',
-    webhookSecret: '',
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'NGN'],
-  },
-  {
-    provider: 'paystack',
-    displayName: 'Paystack',
-    logo: '🏦',
-    isEnabled: true,
-    mode: 'test',
-    publicKey: TEST_KEYS.paystack.publicKey,
-    secretKey: '••••••••••••',
-    webhookSecret: '',
-    supportedCurrencies: ['NGN', 'GHS', 'ZAR', 'KES'],
-  },
-  {
-    provider: 'flutterwave',
-    displayName: 'Flutterwave',
-    logo: '🦋',
-    isEnabled: false,
-    mode: 'test',
-    publicKey: TEST_KEYS.flutterwave.publicKey,
-    secretKey: '••••••••••••',
-    webhookSecret: '',
-    supportedCurrencies: ['NGN', 'GHS', 'KES', 'TZS', 'UGX', 'USD'],
-  },
-  {
-    provider: 'mobilemoney',
-    displayName: 'Mobile Money',
-    logo: '📱',
-    isEnabled: false,
-    mode: 'test',
-    publicKey: TEST_KEYS.mobilemoney.publicKey,
-    secretKey: '••••••••••••',
-    webhookSecret: '',
-    supportedCurrencies: ['KES', 'TZS', 'UGX', 'GHS', 'XOF'],
-  },
-];
+// Gateway logos/icons
+const gatewayLogos: Record<PaymentProvider, string> = {
+  stripe: '💳',
+  paystack: '🏦',
+  flutterwave: '🦋',
+  mobilemoney: '📱',
+};
 
 export function AdminPaymentSettings() {
-  const [configs, setConfigs] = useState<PaymentGatewayConfig[]>(defaultConfigs);
+  const { gateways, isLoading } = usePaymentGateways();
+  const updateGateway = useUpdatePaymentGateway();
+  const toggleMode = useToggleGatewayMode();
+  const testConnection = useTestGatewayConnection();
+
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('stripe');
   const [showSecrets, setShowSecrets] = useState(false);
+  const [editingKeys, setEditingKeys] = useState<{
+    publicKey: string;
+    secretKey: string;
+    webhookSecret: string;
+  } | null>(null);
+  const [showLiveKeyDialog, setShowLiveKeyDialog] = useState(false);
+  const [liveKeys, setLiveKeys] = useState({
+    publicKey: '',
+    secretKey: '',
+    webhookSecret: '',
+  });
 
-  const selectedConfig = configs.find(c => c.provider === selectedProvider)!;
+  const selectedConfig = gateways.find(c => c.provider === selectedProvider);
 
-  const handleToggleEnabled = (provider: PaymentProvider) => {
-    setConfigs(prev => prev.map(c => 
-      c.provider === provider ? { ...c, isEnabled: !c.isEnabled } : c
-    ));
+  const handleToggleEnabled = async (provider: PaymentProvider) => {
+    const gateway = gateways.find(g => g.provider === provider);
+    if (!gateway) return;
+
+    await updateGateway.mutateAsync({
+      id: gateway.id,
+      provider,
+      isActive: !gateway.isActive,
+    });
   };
 
-  const handleToggleMode = (provider: PaymentProvider, mode: EnvironmentMode) => {
-    setConfigs(prev => prev.map(c => 
-      c.provider === provider ? { ...c, mode } : c
-    ));
+  const handleSwitchToLive = async () => {
+    if (!selectedConfig) return;
+
+    if (!liveKeys.publicKey || !liveKeys.secretKey) {
+      return;
+    }
+
+    await toggleMode.mutateAsync({
+      id: selectedConfig.id,
+      provider: selectedProvider,
+      mode: 'live',
+      liveKeys: {
+        publicKey: liveKeys.publicKey,
+        secretKey: liveKeys.secretKey,
+        webhookSecret: liveKeys.webhookSecret || undefined,
+      },
+    });
+
+    setShowLiveKeyDialog(false);
+    setLiveKeys({ publicKey: '', secretKey: '', webhookSecret: '' });
   };
 
-  const handleUpdateKey = (provider: PaymentProvider, keyType: 'publicKey' | 'secretKey' | 'webhookSecret', value: string) => {
-    setConfigs(prev => prev.map(c =>
-      c.provider === provider ? { ...c, [keyType]: value } : c
-    ));
+  const handleSwitchToTest = async () => {
+    if (!selectedConfig) return;
+
+    await toggleMode.mutateAsync({
+      id: selectedConfig.id,
+      provider: selectedProvider,
+      mode: 'test',
+    });
   };
+
+  const handleTestConnection = async () => {
+    if (!selectedConfig) return;
+
+    await testConnection.mutateAsync({
+      provider: selectedProvider,
+      publicKey: selectedConfig.publicKey,
+    });
+  };
+
+  const handleSaveKeys = async () => {
+    if (!selectedConfig || !editingKeys) return;
+
+    await updateGateway.mutateAsync({
+      id: selectedConfig.id,
+      provider: selectedProvider,
+      publicKey: editingKeys.publicKey,
+      secretKey: editingKeys.secretKey,
+      webhookSecret: editingKeys.webhookSecret,
+    });
+
+    setEditingKeys(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -112,27 +138,33 @@ export function AdminPaymentSettings() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Payment Gateway Settings</h1>
         <p className="text-muted-foreground">
-          Configure payment providers with test or live API keys
+          Configure payment providers - using test keys by default. Paste live keys when ready to go live.
         </p>
       </div>
 
       {/* Quick Status */}
-      <div className="grid grid-cols-4 gap-4">
-        {configs.map((config) => (
-          <Card key={config.provider} className={`${config.isEnabled ? 'border-primary/50' : 'opacity-60'}`}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {gateways.map((config) => (
+          <Card 
+            key={config.provider} 
+            className={`cursor-pointer transition-all ${
+              config.isActive ? 'border-primary/50 bg-primary/5' : 'opacity-60'
+            } ${selectedProvider === config.provider ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => setSelectedProvider(config.provider)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">{config.logo}</span>
+                <span className="text-2xl">{gatewayLogos[config.provider]}</span>
                 <Badge 
                   variant={config.mode === 'test' ? 'secondary' : 'default'}
-                  className={config.mode === 'live' ? 'bg-green-500' : ''}
+                  className={config.mode === 'live' ? 'bg-green-500 hover:bg-green-600' : ''}
                 >
                   {config.mode.toUpperCase()}
                 </Badge>
               </div>
               <h4 className="font-semibold">{config.displayName}</h4>
               <p className="text-sm text-muted-foreground">
-                {config.isEnabled ? 'Active' : 'Disabled'}
+                {config.isActive ? 'Active' : 'Disabled'}
               </p>
             </CardContent>
           </Card>
@@ -140,153 +172,304 @@ export function AdminPaymentSettings() {
       </div>
 
       {/* Configuration Panel */}
-      <Card className="bg-card/50 backdrop-blur">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Gateway Configuration</CardTitle>
-            <Select value={selectedProvider} onValueChange={(v) => setSelectedProvider(v as PaymentProvider)}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {configs.map((config) => (
-                  <SelectItem key={config.provider} value={config.provider}>
-                    <span className="flex items-center gap-2">
-                      <span>{config.logo}</span>
-                      {config.displayName}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Enable/Disable */}
-          <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-            <div>
-              <h4 className="font-semibold">Enable {selectedConfig.displayName}</h4>
-              <p className="text-sm text-muted-foreground">
-                Allow payments through this gateway
-              </p>
-            </div>
-            <Switch
-              checked={selectedConfig.isEnabled}
-              onCheckedChange={() => handleToggleEnabled(selectedProvider)}
-            />
-          </div>
-
-          {/* Mode Toggle */}
-          <div className="p-4 rounded-lg border border-border">
-            <h4 className="font-semibold mb-3">Environment Mode</h4>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedConfig.mode === 'test' ? 'default' : 'outline'}
-                onClick={() => handleToggleMode(selectedProvider, 'test')}
-                className="flex-1"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Test Mode
-              </Button>
-              <Button
-                variant={selectedConfig.mode === 'live' ? 'default' : 'outline'}
-                onClick={() => handleToggleMode(selectedProvider, 'live')}
-                className="flex-1 bg-green-500 hover:bg-green-600"
-              >
-                <Globe className="h-4 w-4 mr-2" />
-                Live Mode
-              </Button>
-            </div>
-            {selectedConfig.mode === 'test' && (
-              <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Using test keys - no real payments will be processed
-              </p>
-            )}
-            {selectedConfig.mode === 'live' && (
-              <p className="text-sm text-green-500 mt-2 flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                Live mode - real payments will be processed
-              </p>
-            )}
-          </div>
-
-          {/* API Keys */}
-          <div className="space-y-4">
+      {selectedConfig && (
+        <Card className="bg-card/50 backdrop-blur">
+          <CardHeader>
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold">API Keys</h4>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowSecrets(!showSecrets)}
-              >
-                {showSecrets ? 'Hide' : 'Show'} Secrets
-              </Button>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{gatewayLogos[selectedProvider]}</span>
+                <div>
+                  <CardTitle>{selectedConfig.displayName} Configuration</CardTitle>
+                  <CardDescription>
+                    {selectedConfig.mode === 'test' 
+                      ? 'Using demo test keys - no real payments processed'
+                      : 'Live mode - real payments are being processed'
+                    }
+                  </CardDescription>
+                </div>
+              </div>
+              <Select value={selectedProvider} onValueChange={(v) => setSelectedProvider(v as PaymentProvider)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {gateways.map((config) => (
+                    <SelectItem key={config.provider} value={config.provider}>
+                      <span className="flex items-center gap-2">
+                        <span>{gatewayLogos[config.provider]}</span>
+                        {config.displayName}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Enable/Disable */}
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+              <div>
+                <h4 className="font-semibold">Enable {selectedConfig.displayName}</h4>
+                <p className="text-sm text-muted-foreground">
+                  Allow payments through this gateway
+                </p>
+              </div>
+              <Switch
+                checked={selectedConfig.isActive}
+                onCheckedChange={() => handleToggleEnabled(selectedProvider)}
+                disabled={updateGateway.isPending}
+              />
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="publicKey">Public Key (Publishable)</Label>
-                <Input
-                  id="publicKey"
-                  value={selectedConfig.publicKey}
-                  onChange={(e) => handleUpdateKey(selectedProvider, 'publicKey', e.target.value)}
-                  placeholder={`${selectedProvider}_pk_...`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="secretKey">Secret Key</Label>
-                <Input
-                  id="secretKey"
-                  type={showSecrets ? 'text' : 'password'}
-                  value={selectedConfig.secretKey}
-                  onChange={(e) => handleUpdateKey(selectedProvider, 'secretKey', e.target.value)}
-                  placeholder={`${selectedProvider}_sk_...`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="webhookSecret">Webhook Secret (Optional)</Label>
-                <Input
-                  id="webhookSecret"
-                  type={showSecrets ? 'text' : 'password'}
-                  value={selectedConfig.webhookSecret}
-                  onChange={(e) => handleUpdateKey(selectedProvider, 'webhookSecret', e.target.value)}
-                  placeholder={`${selectedProvider}_wh_...`}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Supported Currencies */}
-          <div className="space-y-2">
-            <h4 className="font-semibold">Supported Currencies</h4>
-            <div className="flex flex-wrap gap-2">
-              {selectedConfig.supportedCurrencies.map((currency) => (
-                <Badge key={currency} variant="secondary">
-                  {currency}
+            {/* Mode Toggle - Easy Live Switch */}
+            <div className="p-4 rounded-lg border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="font-semibold">Environment Mode</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Switch between test and live modes without rebuilding
+                  </p>
+                </div>
+                <Badge variant={selectedConfig.mode === 'live' ? 'default' : 'secondary'} className={selectedConfig.mode === 'live' ? 'bg-green-500' : ''}>
+                  {selectedConfig.mode === 'live' ? 'LIVE' : 'TEST'}
                 </Badge>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Actions */}
-          <div className="flex justify-between">
-            <Button variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Test Connection
-            </Button>
-            <Button className="gap-2">
-              <Check className="h-4 w-4" />
-              Save Configuration
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedConfig.mode === 'test' ? 'default' : 'outline'}
+                  onClick={handleSwitchToTest}
+                  className="flex-1"
+                  disabled={toggleMode.isPending}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Test Mode
+                </Button>
+
+                <Dialog open={showLiveKeyDialog} onOpenChange={setShowLiveKeyDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant={selectedConfig.mode === 'live' ? 'default' : 'outline'}
+                      className={`flex-1 ${selectedConfig.mode === 'live' ? 'bg-green-500 hover:bg-green-600' : ''}`}
+                      disabled={toggleMode.isPending}
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      Live Mode
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Key className="h-5 w-5" />
+                        Enter Live API Keys for {selectedConfig.displayName}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Paste your production API keys to enable live payments. No rebuild required.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="livePublicKey">Public Key (Publishable)</Label>
+                        <Input
+                          id="livePublicKey"
+                          value={liveKeys.publicKey}
+                          onChange={(e) => setLiveKeys(prev => ({ ...prev, publicKey: e.target.value }))}
+                          placeholder={`pk_live_...`}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="liveSecretKey">Secret Key</Label>
+                        <Input
+                          id="liveSecretKey"
+                          type="password"
+                          value={liveKeys.secretKey}
+                          onChange={(e) => setLiveKeys(prev => ({ ...prev, secretKey: e.target.value }))}
+                          placeholder={`sk_live_...`}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="liveWebhookSecret">Webhook Secret (Optional)</Label>
+                        <Input
+                          id="liveWebhookSecret"
+                          type="password"
+                          value={liveKeys.webhookSecret}
+                          onChange={(e) => setLiveKeys(prev => ({ ...prev, webhookSecret: e.target.value }))}
+                          placeholder={`whsec_...`}
+                        />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowLiveKeyDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSwitchToLive}
+                        disabled={!liveKeys.publicKey || !liveKeys.secretKey || toggleMode.isPending}
+                        variant="default"
+                      >
+                        {toggleMode.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4 mr-2" />
+                        )}
+                        Switch to Live
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {selectedConfig.mode === 'test' && (
+                <p className="text-sm text-muted-foreground mt-3 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Using demo test keys - no real payments will be processed
+                </p>
+              )}
+              {selectedConfig.mode === 'live' && (
+                <p className="text-sm text-primary mt-3 flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Live mode active - real payments are being processed
+                </p>
+              )}
+            </div>
+
+            {/* API Keys Display */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold">API Keys</h4>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowSecrets(!showSecrets)}
+                  >
+                    {showSecrets ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+                    {showSecrets ? 'Hide' : 'Show'}
+                  </Button>
+                  {!editingKeys && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setEditingKeys({
+                        publicKey: selectedConfig.publicKey,
+                        secretKey: '',
+                        webhookSecret: '',
+                      })}
+                    >
+                      <Key className="h-4 w-4 mr-1" />
+                      Edit Keys
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {editingKeys ? (
+                <div className="space-y-4 p-4 border border-dashed border-primary/50 rounded-lg">
+                  <div className="space-y-2">
+                    <Label htmlFor="publicKey">Public Key (Publishable)</Label>
+                    <Input
+                      id="publicKey"
+                      value={editingKeys.publicKey}
+                      onChange={(e) => setEditingKeys(prev => prev ? { ...prev, publicKey: e.target.value } : null)}
+                      placeholder={`${selectedProvider}_pk_...`}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="secretKey">Secret Key</Label>
+                    <Input
+                      id="secretKey"
+                      type={showSecrets ? 'text' : 'password'}
+                      value={editingKeys.secretKey}
+                      onChange={(e) => setEditingKeys(prev => prev ? { ...prev, secretKey: e.target.value } : null)}
+                      placeholder={`${selectedProvider}_sk_...`}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="webhookSecret">Webhook Secret (Optional)</Label>
+                    <Input
+                      id="webhookSecret"
+                      type={showSecrets ? 'text' : 'password'}
+                      value={editingKeys.webhookSecret}
+                      onChange={(e) => setEditingKeys(prev => prev ? { ...prev, webhookSecret: e.target.value } : null)}
+                      placeholder={`${selectedProvider}_wh_...`}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setEditingKeys(null)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveKeys} disabled={updateGateway.isPending}>
+                      {updateGateway.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4 mr-2" />
+                      )}
+                      Save Keys
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Public Key</Label>
+                    <div className="p-2 bg-muted rounded-md font-mono text-sm">
+                      {showSecrets ? selectedConfig.publicKey : selectedConfig.publicKey.slice(0, 20) + '••••••••'}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Secret Key</Label>
+                    <div className="p-2 bg-muted rounded-md font-mono text-sm">
+                      {selectedConfig.secretKey || '(not set)'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Supported Currencies */}
+            <div className="space-y-2">
+              <h4 className="font-semibold">Supported Currencies</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedConfig.supportedCurrencies.map((currency) => (
+                  <Badge key={currency} variant="secondary">
+                    {currency}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-between pt-4 border-t">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={handleTestConnection}
+                disabled={testConnection.isPending}
+              >
+                {testConnection.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Test Connection
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                Changes are saved automatically
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Mobile Money Providers (if selected) */}
-      {selectedProvider === 'mobilemoney' && (
+      {selectedProvider === 'mobilemoney' && selectedConfig && (
         <Card className="bg-card/50 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
