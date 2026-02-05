@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => ({
       "react-router-dom",
       "@tanstack/react-query",
       "@radix-ui/react-tooltip",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-slot",
+      "@supabase/supabase-js",
     ],
   },
   optimizeDeps: {
@@ -28,7 +33,9 @@ export default defineConfig(({ mode }) => ({
       "react-dom",
       "react-router-dom",
       "@tanstack/react-query",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-dialog",
+      "@supabase/supabase-js",
     ],
-    force: true,
   },
 }));
