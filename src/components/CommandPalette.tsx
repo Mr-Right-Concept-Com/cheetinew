@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   CommandDialog,
   CommandEmpty,
@@ -57,8 +57,12 @@ type CommandAction = {
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthPage = location.pathname.startsWith("/auth");
 
   useEffect(() => {
+    if (isAuthPage) return;
+    
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -68,7 +72,12 @@ export function CommandPalette() {
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [isAuthPage]);
+
+  // Don't render on auth pages to avoid context issues during transitions
+  if (isAuthPage) {
+    return null;
+  }
 
   const runCommand = (command: () => void) => {
     setOpen(false);
