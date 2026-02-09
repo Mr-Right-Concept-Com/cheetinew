@@ -12,17 +12,24 @@ import {
   ChevronRight,
   Plus,
   Settings,
+  Mail,
+  Shield,
+  Bell,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useHostingAccounts, useHostingStats } from "@/hooks/useHosting";
 import { useCloudInstances } from "@/hooks/useCloudInstances";
+import { useDomainStats } from "@/hooks/useDomains";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 
 const Dashboard = () => {
   const { profile } = useAuth();
   const { data: hostingAccounts, isLoading: hostingLoading } = useHostingAccounts();
   const { data: hostingStats } = useHostingStats();
   const { data: cloudInstances, isLoading: cloudLoading } = useCloudInstances();
+  const { data: domainStats } = useDomainStats();
+  const { data: unreadCount } = useUnreadNotificationCount();
 
   const activeHosting = hostingStats?.active ?? 0;
   const runningCloud = cloudInstances?.filter(i => i.status === "running").length ?? 0;
@@ -36,7 +43,8 @@ const Dashboard = () => {
       value: activeHosting.toString(),
       change: `${hostingStats?.total ?? 0} total`,
       icon: Server,
-      color: "text-primary",
+      bgColor: "bg-primary/10",
+      iconColor: "text-primary",
       loading: hostingLoading,
     },
     {
@@ -44,24 +52,27 @@ const Dashboard = () => {
       value: runningCloud.toString(),
       change: `${cloudInstances?.length ?? 0} total`,
       icon: Cloud,
-      color: "text-accent",
+      bgColor: "bg-accent/10",
+      iconColor: "text-accent",
       loading: cloudLoading,
     },
     {
-      title: "Total Bandwidth",
+      title: "Domains",
+      value: (domainStats?.total ?? 0).toString(),
+      change: `${domainStats?.active ?? 0} active`,
+      icon: Globe,
+      bgColor: "bg-green-500/10",
+      iconColor: "text-green-500",
+      loading: false,
+    },
+    {
+      title: "Bandwidth",
       value: `${totalBandwidth} GB`,
       change: `${bandwidthPercent}% of limit`,
       icon: TrendingUp,
-      color: "text-primary",
+      bgColor: "bg-primary/10",
+      iconColor: "text-primary",
       loading: hostingLoading,
-    },
-    {
-      title: "Uptime",
-      value: "99.98%",
-      change: "Last 30 days",
-      icon: Activity,
-      color: "text-primary",
-      loading: false,
     },
   ];
 
@@ -121,8 +132,8 @@ const Dashboard = () => {
                       )}
                       <p className="text-xs text-muted-foreground truncate">{stat.change}</p>
                     </div>
-                    <div className={`p-2 md:p-3 rounded-lg bg-primary/10 ${stat.color} flex-shrink-0`}>
-                      <stat.icon className="h-5 w-5 md:h-6 md:w-6" />
+                    <div className={`p-2 md:p-3 rounded-lg ${stat.bgColor} flex-shrink-0`}>
+                      <stat.icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.iconColor}`} />
                     </div>
                   </div>
                 </CardContent>

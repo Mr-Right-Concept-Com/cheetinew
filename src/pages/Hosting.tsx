@@ -74,10 +74,10 @@ const Hosting = () => {
   };
 
   const statsData = [
-    { label: "Active Sites", value: stats?.active.toString() || "0", icon: Globe, color: "text-primary" },
-    { label: "Total Sites", value: stats?.total.toString() || "0", icon: Users, color: "text-accent" },
-    { label: "Storage Used", value: `${stats?.storagePercentage || 0}%`, icon: Activity, color: "text-green-500" },
-    { label: "Total Storage", value: `${stats?.usedStorageGB || 0} GB`, icon: HardDrive, color: "text-primary" },
+    { label: "Active Sites", value: stats?.active.toString() || "0", icon: Globe, bgColor: "bg-primary/10", iconColor: "text-primary" },
+    { label: "Total Sites", value: stats?.total.toString() || "0", icon: Users, bgColor: "bg-accent/10", iconColor: "text-accent" },
+    { label: "Storage Used", value: `${stats?.storagePercentage || 0}%`, icon: Activity, bgColor: "bg-green-500/10", iconColor: "text-green-500" },
+    { label: "Total Storage", value: `${stats?.usedStorageGB || 0} GB`, icon: HardDrive, bgColor: "bg-primary/10", iconColor: "text-primary" },
   ];
 
   return (
@@ -170,8 +170,8 @@ const Hosting = () => {
               <Card key={index} className="bg-card/50 backdrop-blur">
                 <CardContent className="p-4 md:p-6">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className={`p-2 md:p-3 rounded-lg bg-${stat.color}/10`}>
-                      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.color}`} />
+                    <div className={`p-2 md:p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       {isLoading ? (

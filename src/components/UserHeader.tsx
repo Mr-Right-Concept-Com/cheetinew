@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { 
   User, 
   Settings, 
@@ -24,6 +25,7 @@ import { SidebarTrigger } from "./ui/sidebar";
 
 export const UserHeader = () => {
   const { user, profile, isAdmin, logout } = useAuth();
+  const { data: unreadCount } = useUnreadNotificationCount();
 
   const getInitials = () => {
     if (profile?.full_name) {
@@ -52,9 +54,11 @@ export const UserHeader = () => {
           <Link to="/dashboard/notifications">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-                3
-              </span>
+              {(unreadCount ?? 0) > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Button>
           </Link>
 

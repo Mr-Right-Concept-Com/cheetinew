@@ -44,6 +44,8 @@ const AdminSidebar = () => {
     { icon: Mail, label: "Email", path: "/admin/email" },
     { icon: Shield, label: "Security", path: "/admin/security" },
     { icon: DollarSign, label: "Billing", path: "/admin/billing" },
+    { icon: DollarSign, label: "Payments", path: "/admin/payments" },
+    { icon: Server, label: "Panels", path: "/admin/panels" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 

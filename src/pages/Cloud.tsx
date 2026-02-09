@@ -41,14 +41,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useCloudInstances, useCreateCloudInstance, useUpdateCloudInstance } from "@/hooks/useCloudInstances";
+import { useCloudInstances, useCreateCloudInstance, useInstanceActions } from "@/hooks/useCloudInstances";
 import { useToast } from "@/hooks/use-toast";
 
 const Cloud = () => {
   const { toast } = useToast();
   const { data: instances, isLoading, error } = useCloudInstances();
   const createInstance = useCreateCloudInstance();
-  const updateInstance = useUpdateCloudInstance();
+  const { startInstance, stopInstance } = useInstanceActions();
   
   const [newInstance, setNewInstance] = useState({
     name: "",
@@ -86,15 +86,12 @@ const Cloud = () => {
   };
 
   const handleToggleInstance = async (instanceId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "running" ? "stopped" : "running";
     try {
-      await updateInstance.mutateAsync({
-        id: instanceId,
-      });
-      toast({
-        title: newStatus === "running" ? "Instance Started" : "Instance Stopped",
-        description: `Instance is now ${newStatus}.`,
-      });
+      if (currentStatus === "running") {
+        await stopInstance.mutateAsync(instanceId);
+      } else {
+        await startInstance.mutateAsync(instanceId);
+      }
     } catch (err) {
       toast({
         title: "Error",
@@ -110,25 +107,29 @@ const Cloud = () => {
       label: "Active Instances", 
       value: instances?.filter(i => i.status === "running").length?.toString() || "0", 
       icon: Server, 
-      color: "text-primary" 
+      bgColor: "bg-primary/10",
+      iconColor: "text-primary" 
     },
     { 
       label: "Total vCPU", 
       value: instances?.reduce((sum, i) => sum + (i.vcpu || 0), 0)?.toString() || "0", 
       icon: Cpu, 
-      color: "text-accent" 
+      bgColor: "bg-accent/10",
+      iconColor: "text-accent" 
     },
     { 
       label: "Total RAM", 
       value: `${instances?.reduce((sum, i) => sum + (i.ram_gb || 0), 0) || 0} GB`, 
       icon: Activity, 
-      color: "text-green-500" 
+      bgColor: "bg-green-500/10",
+      iconColor: "text-green-500" 
     },
     { 
       label: "Total Storage", 
       value: `${instances?.reduce((sum, i) => sum + (i.disk_gb || 0), 0) || 0} GB`, 
       icon: HardDrive, 
-      color: "text-primary" 
+      bgColor: "bg-primary/10",
+      iconColor: "text-primary" 
     },
   ];
 
@@ -267,8 +268,8 @@ const Cloud = () => {
               <Card key={index} className="bg-card/50 backdrop-blur">
                 <CardContent className="p-4 md:p-6">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className={`p-2 md:p-3 rounded-lg bg-${stat.color}/10`}>
-                      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.color}`} />
+                    <div className={`p-2 md:p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       {isLoading ? (
