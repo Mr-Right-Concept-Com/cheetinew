@@ -20,6 +20,8 @@ import {
   Layers,
   Command,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { InfrastructureMap } from "@/components/dashboard/InfrastructureMap";
 import { 
   DraggableWidget, 
@@ -44,20 +46,52 @@ const AetherDashboard = () => {
     { id: 'performance', type: 'performance', title: 'Performance', size: 'medium', position: 4, enabled: true },
   ]);
 
-  // Connected panels overview
-  const connectedPanels = [
-    { name: "cPanel (Primary)", type: "cpanel", sites: 45, status: "healthy", region: "US-East" },
-    { name: "Plesk (EU)", type: "plesk", sites: 23, status: "healthy", region: "EU-West" },
-    { name: "Hostinger", type: "hostinger", sites: 12, status: "warning", region: "AP-South" },
-    { name: "Spaceship", type: "spaceship", sites: 8, status: "healthy", region: "US-West" },
-  ];
+  // Use real panel connections data
+  const panelQuery = useQuery({
+    queryKey: ["panel-connections"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("panel_connections").select("*").eq("is_active", true);
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  // Quick stats
+  const connectedPanels = panelQuery.data?.map(p => ({
+    name: p.name,
+    type: p.panel_type,
+    sites: 0,
+    status: p.sync_status === "synced" ? "healthy" : "warning",
+    region: (p.metadata as any)?.region || "Global",
+  })) || [];
+
+  // Use real data for stats
+  const hostingQuery = useQuery({
+    queryKey: ["aether-hosting-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("hosting_accounts").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+  const cloudQuery = useQuery({
+    queryKey: ["aether-cloud-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("cloud_instances").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+  const domainQuery = useQuery({
+    queryKey: ["aether-domain-count"],
+    queryFn: async () => {
+      const { count } = await supabase.from("domains").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+
   const globalStats = [
-    { label: "Total Sites", value: "88", icon: Globe, trend: "+5 this week" },
-    { label: "Cloud Instances", value: "24", icon: Cloud, trend: "+2 today" },
-    { label: "Active Domains", value: "156", icon: Layers, trend: "3 expiring" },
-    { label: "Global Uptime", value: "99.97%", icon: Activity, trend: "+0.02%" },
+    { label: "Total Sites", value: (hostingQuery.data ?? 0).toString(), icon: Globe, trend: "hosting accounts" },
+    { label: "Cloud Instances", value: (cloudQuery.data ?? 0).toString(), icon: Cloud, trend: "all regions" },
+    { label: "Active Domains", value: (domainQuery.data ?? 0).toString(), icon: Layers, trend: "registered" },
+    { label: "Global Uptime", value: "99.97%", icon: Activity, trend: "last 30 days" },
   ];
 
   const handleRemoveWidget = (id: string) => {

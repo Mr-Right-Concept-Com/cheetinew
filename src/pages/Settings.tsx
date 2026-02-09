@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +27,21 @@ const Settings = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || "",
-    company_name: profile?.company_name || "",
-    phone: profile?.phone || "",
+    full_name: "",
+    company_name: "",
+    phone: "",
   });
+
+  // Sync form data when profile loads or changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || "",
+        company_name: profile.company_name || "",
+        phone: profile.phone || "",
+      });
+    }
+  }, [profile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

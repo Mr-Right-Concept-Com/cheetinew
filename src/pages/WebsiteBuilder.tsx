@@ -16,6 +16,8 @@ import {
   Eye,
   Sparkles,
 } from "lucide-react";
+import { useHostingStats } from "@/hooks/useHosting";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const templates = [
   { id: 1, name: "Business Pro", category: "Business", image: "🏢", pages: 5, premium: true },
@@ -28,6 +30,7 @@ const templates = [
 
 const WebsiteBuilder = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: hostingStats, isLoading: statsLoading } = useHostingStats();
 
   const filteredTemplates = templates.filter((t) =>
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,7 +63,7 @@ const WebsiteBuilder = () => {
                   <Layout className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">12</p>
+                  {statsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{hostingStats?.active ?? 0}</p>}
                   <p className="text-sm text-muted-foreground">Active Sites</p>
                 </div>
               </div>
@@ -73,8 +76,8 @@ const WebsiteBuilder = () => {
                   <Eye className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">24.5K</p>
-                  <p className="text-sm text-muted-foreground">Total Visitors</p>
+                  {statsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{hostingStats?.total ?? 0}</p>}
+                  <p className="text-sm text-muted-foreground">Total Sites</p>
                 </div>
               </div>
             </CardContent>
@@ -86,8 +89,8 @@ const WebsiteBuilder = () => {
                   <Zap className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">98</p>
-                  <p className="text-sm text-muted-foreground">Avg. Speed Score</p>
+                  {statsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-2xl font-bold">{hostingStats?.storagePercentage ?? 0}%</p>}
+                  <p className="text-sm text-muted-foreground">Storage Used</p>
                 </div>
               </div>
             </CardContent>
@@ -99,8 +102,8 @@ const WebsiteBuilder = () => {
                   <Globe className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">45</p>
-                  <p className="text-sm text-muted-foreground">Countries</p>
+                  <p className="text-2xl font-bold">6</p>
+                  <p className="text-sm text-muted-foreground">Templates</p>
                 </div>
               </div>
             </CardContent>
