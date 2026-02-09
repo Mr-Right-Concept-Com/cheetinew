@@ -2,23 +2,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Plus, Search, Settings, ExternalLink, CheckCircle, Clock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Unbox = () => {
-  const connectedTools = [
-    { name: "Google Analytics", category: "Analytics", status: "connected", icon: "📊" },
-    { name: "Mailchimp", category: "Email Marketing", status: "connected", icon: "📧" },
-    { name: "Stripe", category: "Payments", status: "connected", icon: "💳" },
-    { name: "Cloudflare", category: "CDN", status: "connected", icon: "☁️" },
+  const { user } = useAuth();
+
+  // Fetch real hosting/domain/email counts to show connected services
+  const { data: serviceCounts, isLoading } = useQuery({
+    queryKey: ["unbox-services", user?.id],
+    queryFn: async () => {
+      const [hosting, domains, email, cloud] = await Promise.all([
+        supabase.from("hosting_accounts").select("*", { count: "exact", head: true }),
+        supabase.from("domains").select("*", { count: "exact", head: true }),
+        supabase.from("email_accounts").select("*", { count: "exact", head: true }),
+        supabase.from("cloud_instances").select("*", { count: "exact", head: true }),
+      ]);
+      return {
+        hosting: hosting.count || 0,
+        domains: domains.count || 0,
+        email: email.count || 0,
+        cloud: cloud.count || 0,
+        total: (hosting.count || 0) + (domains.count || 0) + (email.count || 0) + (cloud.count || 0),
+      };
+    },
+    enabled: !!user,
+  });
+
+  const connectedServices = [
+    { name: "Web Hosting", category: "Hosting", status: "connected", icon: "🌐", count: serviceCounts?.hosting || 0 },
+    { name: "Domain Names", category: "Domains", status: "connected", icon: "🔗", count: serviceCounts?.domains || 0 },
+    { name: "Email Accounts", category: "Email", status: "connected", icon: "📧", count: serviceCounts?.email || 0 },
+    { name: "Cloud Instances", category: "Cloud", status: "connected", icon: "☁️", count: serviceCounts?.cloud || 0 },
   ];
 
   const availableTools = [
-    { name: "Facebook Pixel", category: "Analytics", icon: "📱" },
-    { name: "Google Tag Manager", category: "Analytics", icon: "🏷️" },
-    { name: "Intercom", category: "Support", icon: "💬" },
-    { name: "Slack", category: "Communication", icon: "💼" },
-    { name: "Zapier", category: "Automation", icon: "⚡" },
-    { name: "HubSpot", category: "CRM", icon: "🎯" },
+    { name: "Google Analytics", category: "Analytics", icon: "📊" },
+    { name: "Cloudflare CDN", category: "CDN & Security", icon: "🛡️" },
+    { name: "Stripe Payments", category: "Payments", icon: "💳" },
+    { name: "Slack Notifications", category: "Communication", icon: "💼" },
+    { name: "Zapier Automation", category: "Automation", icon: "⚡" },
+    { name: "HubSpot CRM", category: "CRM", icon: "🎯" },
   ];
 
   return (
@@ -42,74 +69,70 @@ const Unbox = () => {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-2">
               <Package className="h-5 w-5 text-primary flex-shrink-0" />
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                Active
-              </Badge>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">Active</Badge>
             </div>
-            <p className="text-xl md:text-2xl font-bold truncate">4</p>
-            <p className="text-xs md:text-sm text-muted-foreground truncate">Connected Tools</p>
+            {isLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-xl md:text-2xl font-bold truncate">{serviceCounts?.total || 0}</p>}
+            <p className="text-xs md:text-sm text-muted-foreground truncate">Total Services</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">
-                Synced
-              </Badge>
+              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">Synced</Badge>
             </div>
             <p className="text-xl md:text-2xl font-bold truncate">100%</p>
             <p className="text-xs md:text-sm text-muted-foreground truncate">Sync Status</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-2">
               <Clock className="h-5 w-5 text-accent flex-shrink-0" />
-              <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20 text-xs">
-                Real-time
-              </Badge>
+              <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20 text-xs">Real-time</Badge>
             </div>
-            <p className="text-xl md:text-2xl font-bold truncate">2 min</p>
-            <p className="text-xs md:text-sm text-muted-foreground truncate">Last Sync</p>
+            <p className="text-xl md:text-2xl font-bold truncate">Live</p>
+            <p className="text-xs md:text-sm text-muted-foreground truncate">Data Sync</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-2">
               <Settings className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               <Badge variant="outline" className="text-xs">Available</Badge>
             </div>
-            <p className="text-xl md:text-2xl font-bold truncate">50+</p>
+            <p className="text-xl md:text-2xl font-bold truncate">6</p>
             <p className="text-xs md:text-sm text-muted-foreground truncate">Integrations</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Connected Tools */}
+      {/* Connected Services */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl truncate">Connected Tools</CardTitle>
+          <CardTitle className="text-lg md:text-xl truncate">Your Services</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {connectedTools.map((tool, i) => (
+            {connectedServices.map((service, i) => (
               <Card key={i} className="border-2">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="text-2xl flex-shrink-0">{tool.icon}</div>
+                      <div className="text-2xl flex-shrink-0">{service.icon}</div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm md:text-base truncate">{tool.name}</h4>
-                        <p className="text-xs text-muted-foreground truncate">{tool.category}</p>
+                        <h4 className="font-semibold text-sm md:text-base truncate">{service.name}</h4>
+                        <p className="text-xs text-muted-foreground truncate">{service.count} {service.category.toLowerCase()}</p>
                       </div>
                     </div>
-                    <Badge className="bg-green-500/10 text-green-500 border-green-500/20 text-xs whitespace-nowrap">
-                      <CheckCircle className="mr-1 h-3 w-3" />
-                      Connected
+                    <Badge className={`text-xs whitespace-nowrap ${
+                      service.count > 0 
+                        ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {service.count > 0 ? (
+                        <><CheckCircle className="mr-1 h-3 w-3" />Active</>
+                      ) : "Empty"}
                     </Badge>
                   </div>
                   <div className="flex gap-2">
@@ -129,7 +152,7 @@ const Unbox = () => {
         </CardContent>
       </Card>
 
-      {/* Available Tools */}
+      {/* Available Integrations */}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

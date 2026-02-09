@@ -12,7 +12,6 @@ import {
   Inbox,
   Send,
   Trash2,
-  Star,
   Shield,
   Settings,
   RefreshCw,
@@ -75,36 +74,7 @@ const Email = () => {
     m.email_address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Placeholder recent emails (would come from email API)
-  const recentEmails = [
-    {
-      id: 1,
-      from: "john@client.com",
-      subject: "Project Update Required",
-      preview: "Hi, I wanted to follow up on the project timeline...",
-      time: "10:30 AM",
-      unread: true,
-      starred: true,
-    },
-    {
-      id: 2,
-      from: "billing@stripe.com",
-      subject: "Your Invoice #12345",
-      preview: "Your payment of $99.00 has been processed successfully...",
-      time: "9:15 AM",
-      unread: true,
-      starred: false,
-    },
-    {
-      id: 3,
-      from: "newsletter@dev.to",
-      subject: "Weekly Developer Digest",
-      preview: "Top articles from this week: React 19 features...",
-      time: "Yesterday",
-      unread: false,
-      starred: false,
-    },
-  ];
+  // No mock emails - inbox shows real mailbox list instead
 
   return (
     <div className="min-h-screen bg-background">
@@ -226,8 +196,10 @@ const Email = () => {
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">245</p>
-                  <p className="text-sm text-muted-foreground truncate">Blocked Spam</p>
+                  <p className="text-2xl font-bold truncate">
+                    {mailboxes?.filter(m => m.spam_filter_level === 'high').length || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground truncate">High Spam Filter</p>
                 </div>
               </div>
             </CardContent>
@@ -240,8 +212,10 @@ const Email = () => {
                   <Send className="h-6 w-6 text-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-bold truncate">89</p>
-                  <p className="text-sm text-muted-foreground truncate">Sent Today</p>
+                  <p className="text-2xl font-bold truncate">
+                    {mailboxes?.filter(m => m.forwarding_enabled).length || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground truncate">Forwarding Active</p>
                 </div>
               </div>
             </CardContent>
@@ -355,7 +329,7 @@ const Email = () => {
             <Card className="bg-card/50 backdrop-blur">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Recent Emails</CardTitle>
+                  <CardTitle>Email Overview</CardTitle>
                   <Button variant="ghost" size="sm" className="gap-2">
                     <RefreshCw className="h-4 w-4" />
                     Refresh
@@ -363,36 +337,36 @@ const Email = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {recentEmails.map((email) => (
-                    <div
-                      key={email.id}
-                      className={`flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer hover:border-primary/50 ${
-                        email.unread ? "bg-primary/5 border-primary/20" : "border-border bg-background/50"
-                      }`}
-                    >
-                      <Button variant="ghost" size="icon" className="flex-shrink-0 mt-1">
-                        <Star
-                          className={`h-4 w-4 ${
-                            email.starred ? "fill-primary text-primary" : "text-muted-foreground"
-                          }`}
-                        />
-                      </Button>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className={`font-medium truncate ${email.unread ? "text-foreground" : "text-muted-foreground"}`}>
-                            {email.from}
-                          </p>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">{email.time}</span>
+                {isLoading ? (
+                  <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
+                ) : filteredMailboxes && filteredMailboxes.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredMailboxes.map((mailbox) => (
+                      <div key={mailbox.id} className="flex items-start gap-4 p-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all cursor-pointer">
+                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0 mt-1">
+                          <Mail className="h-4 w-4 text-primary" />
                         </div>
-                        <p className={`text-sm truncate ${email.unread ? "font-medium" : ""}`}>
-                          {email.subject}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">{email.preview}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{mailbox.email_address}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {mailbox.used_mb || 0} MB used of {mailbox.quota_mb || 10240} MB
+                            {mailbox.forwarding_enabled && " • Forwarding enabled"}
+                            {mailbox.autoresponder_enabled && " • Auto-responder on"}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className={`whitespace-nowrap ${
+                          mailbox.status === 'active' ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-muted text-muted-foreground"
+                        }`}>{mailbox.status}</Badge>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Inbox className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Mailboxes</h3>
+                    <p className="text-muted-foreground">Create a mailbox to start managing email.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
