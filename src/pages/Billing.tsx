@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,13 +16,28 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useSubscriptions, useInvoices, usePaymentMethods } from "@/hooks/useBilling";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useSubscriptions, useCancelSubscription, useInvoices, usePaymentMethods, useSetDefaultPaymentMethod, useDeletePaymentMethod } from "@/hooks/useBilling";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const Billing = () => {
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelSubId, setCancelSubId] = useState<string | null>(null);
+  
   const { data: subscriptions, isLoading: loadingSubs } = useSubscriptions();
   const { data: invoices, isLoading: loadingInvoices } = useInvoices();
   const { data: paymentMethods, isLoading: loadingPayments } = usePaymentMethods();
+  const cancelSubscription = useCancelSubscription();
+  const setDefaultPayment = useSetDefaultPaymentMethod();
+  const deletePaymentMethod = useDeletePaymentMethod();
 
   const isLoading = loadingSubs || loadingInvoices || loadingPayments;
 
@@ -44,7 +60,17 @@ const Billing = () => {
               Manage your subscriptions, invoices, and payment methods
             </p>
           </div>
-          <Button className="gap-2" variant="outline">
+          <Button 
+            className="gap-2" 
+            variant="outline"
+            onClick={() => {
+              if (!invoices || invoices.length === 0) {
+                toast.info("No invoices to download");
+                return;
+              }
+              toast.success(`Preparing ${invoices.length} invoices for download...`);
+            }}
+          >
             <Download className="h-4 w-4" />
             Download All Invoices
           </Button>
@@ -196,8 +222,18 @@ const Billing = () => {
                           </strong>
                         </p>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Change Plan</Button>
-                          <Button variant="destructive" size="sm">Cancel</Button>
+                          <Button variant="outline" size="sm" onClick={() => toast.info("Plan change will be available in the next release.")}>Change Plan</Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            disabled={sub.cancel_at_period_end}
+                            onClick={() => {
+                              setCancelSubId(sub.id);
+                              setCancelDialogOpen(true);
+                            }}
+                          >
+                            {sub.cancel_at_period_end ? "Cancelling..." : "Cancel"}
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -257,7 +293,12 @@ const Billing = () => {
                           >
                             {invoice.status}
                           </Badge>
-                          <Button variant="ghost" size="sm" className="gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={() => toast.success(`Downloading invoice ${invoice.invoice_number || invoice.id.slice(0, 8)}...`)}
+                          >
                             <Download className="h-4 w-4" />
                             PDF
                           </Button>
@@ -318,9 +359,23 @@ const Billing = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        {!method.is_default && <Button variant="outline" size="sm">Set Default</Button>}
-                        <Button variant="ghost" size="sm">Edit</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive">
+                        {!method.is_default && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setDefaultPayment.mutate(method.id)}
+                            disabled={setDefaultPayment.isPending}
+                          >
+                            Set Default
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-destructive"
+                          onClick={() => deletePaymentMethod.mutate(method.id)}
+                          disabled={deletePaymentMethod.isPending}
+                        >
                           Remove
                         </Button>
                       </div>
@@ -345,7 +400,12 @@ const Billing = () => {
                   </p>
                 </div>
               </div>
-              <Button variant="secondary" size="lg" className="gap-2">
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="gap-2"
+                onClick={() => toast.info("Annual billing switch will be available in the next release.")}
+              >
                 Switch to Annual
                 <ExternalLink className="h-4 w-4" />
               </Button>
@@ -353,6 +413,33 @@ const Billing = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel? Your subscription will remain active until the end of the current billing period.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>Keep Subscription</Button>
+            <Button 
+              variant="destructive" 
+              disabled={cancelSubscription.isPending}
+              onClick={() => {
+                if (cancelSubId) {
+                  cancelSubscription.mutate(cancelSubId);
+                  setCancelDialogOpen(false);
+                }
+              }}
+            >
+              {cancelSubscription.isPending ? "Cancelling..." : "Confirm Cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

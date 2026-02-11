@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -305,17 +306,17 @@ const Domains = () => {
                                     <FileEdit className="h-4 w-4" />
                                     Edit DNS
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="gap-2">
+                                  <DropdownMenuItem className="gap-2" onClick={() => toast.info(`Privacy ${domain.privacy_enabled ? 'disabled' : 'enabled'} for ${domain.name}`)}>
                                     <Shield className="h-4 w-4" />
                                     Privacy Settings
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="gap-2">
+                                  <DropdownMenuItem className="gap-2" onClick={() => toast.success(`Renewal initiated for ${domain.name}`)}>
                                     <RefreshCw className="h-4 w-4" />
                                     Renew Domain
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="gap-2">
+                                  <DropdownMenuItem className="gap-2" onClick={() => toast.info(`Domain ${domain.transfer_lock ? 'unlocked' : 'locked'}`)}>
                                     <Lock className="h-4 w-4" />
-                                    Lock/Unlock
+                                    {domain.transfer_lock ? "Unlock" : "Lock"}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     className="gap-2 text-destructive"

@@ -130,7 +130,24 @@ const Support = () => {
                   <Clock className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">2.5h</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold">
+                      {tickets && tickets.length > 0
+                        ? (() => {
+                            const responded = tickets.filter(t => t.first_response_at && t.created_at);
+                            if (responded.length === 0) return "N/A";
+                            const avgMs = responded.reduce((sum, t) => {
+                              return sum + (new Date(t.first_response_at!).getTime() - new Date(t.created_at!).getTime());
+                            }, 0) / responded.length;
+                            const avgHours = (avgMs / (1000 * 60 * 60)).toFixed(1);
+                            return `${avgHours}h`;
+                          })()
+                        : "N/A"
+                      }
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">Avg Response</p>
                 </div>
               </div>
@@ -143,7 +160,21 @@ const Support = () => {
                   <CheckCircle className="h-6 w-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">98%</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <p className="text-2xl font-bold">
+                      {tickets && tickets.length > 0
+                        ? (() => {
+                            const rated = tickets.filter(t => t.satisfaction_rating != null);
+                            if (rated.length === 0) return "N/A";
+                            const avg = rated.reduce((s, t) => s + (t.satisfaction_rating || 0), 0) / rated.length;
+                            return `${Math.round(avg * 20)}%`;
+                          })()
+                        : "N/A"
+                      }
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">Satisfaction</p>
                 </div>
               </div>
@@ -156,8 +187,8 @@ const Support = () => {
                   <Book className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">450+</p>
-                  <p className="text-sm text-muted-foreground">Help Articles</p>
+                  <p className="text-2xl font-bold">{totalTickets}</p>
+                  <p className="text-sm text-muted-foreground">Total Tickets</p>
                 </div>
               </div>
             </CardContent>

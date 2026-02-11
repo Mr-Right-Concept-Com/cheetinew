@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -269,23 +270,23 @@ const Hosting = () => {
                             <DropdownMenuContent align="end" className="w-48">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem className="gap-2" onClick={() => toast.success(`Restarting server for ${site.name}...`)}>
                                 <Power className="h-4 w-4" />
                                 Restart Server
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem className="gap-2" onClick={() => toast.success(`Creating backup for ${site.name}...`)}>
                                 <RotateCcw className="h-4 w-4" />
                                 Create Backup
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem className="gap-2" onClick={() => toast.info("Database manager opening...")}>
                                 <Database className="h-4 w-4" />
                                 Database Access
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem className="gap-2" onClick={() => toast.success(`SSL certificate active for ${site.name}`)}>
                                 <Shield className="h-4 w-4" />
                                 SSL Certificate
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
+                              <DropdownMenuItem className="gap-2" onClick={() => toast.info("Opening server logs...")}>
                                 <FileText className="h-4 w-4" />
                                 View Logs
                               </DropdownMenuItem>

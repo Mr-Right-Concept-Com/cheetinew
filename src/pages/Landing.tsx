@@ -384,10 +384,10 @@ const Landing = () => {
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Company</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">About Us</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Careers</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Blog</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
@@ -395,21 +395,21 @@ const Landing = () => {
               <ul className="space-y-2 text-muted-foreground">
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Documentation</Link></li>
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Status</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Community</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Status</Link></li>
+                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Community</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-lg">Legal</h4>
               <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
+                <li><Link to="/legal/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/legal/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link to="/legal/cookies" className="hover:text-primary transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-border text-center text-muted-foreground">
-            <p>&copy; 2025 CheetiHost. All rights reserved. Speed. Simplicity. Cheeti.</p>
+            <p>&copy; 2026 CheetiHost. All rights reserved. Speed. Simplicity. Cheeti.</p>
           </div>
         </div>
       </footer>

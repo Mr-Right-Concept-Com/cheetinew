@@ -4,124 +4,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Check, Sparkles } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlans } from "@/hooks/useBilling";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Pricing = () => {
   const { user } = useAuth();
   const dashboardLink = user ? "/dashboard" : "/auth/signup";
 
-  const plans = [
-    {
-      name: "Starter",
-      price: "$9",
-      period: "/month",
-      description: "Perfect for personal projects and small websites",
-      features: [
-        "1 Website",
-        "10GB SSD Storage",
-        "100GB Bandwidth",
-        "Free SSL Certificate",
-        "Daily Backups",
-        "24/7 Email Support",
-        "99.9% Uptime SLA",
-        "1-Click WordPress Install",
-      ],
-      cta: "Get Started",
-      featured: false,
-    },
-    {
-      name: "Professional",
-      price: "$29",
-      period: "/month",
-      description: "Best for growing businesses and agencies",
-      features: [
-        "5 Websites",
-        "50GB SSD Storage",
-        "Unlimited Bandwidth",
-        "Free SSL Certificates",
-        "Hourly Backups",
-        "Priority Support (24/7)",
-        "99.99% Uptime SLA",
-        "Free Domain (1 year)",
-        "CDN Included",
-        "Staging Environment",
-        "Advanced Analytics",
-        "Git Integration",
-      ],
-      cta: "Start Free Trial",
-      featured: true,
-    },
-    {
-      name: "Enterprise",
-      price: "$99",
-      period: "/month",
-      description: "For mission-critical applications at scale",
-      features: [
-        "Unlimited Websites",
-        "200GB SSD Storage",
-        "Unlimited Bandwidth",
-        "Free SSL Certificates",
-        "Real-time Backups",
-        "Dedicated Support Manager",
-        "99.99% Uptime SLA",
-        "Free Domains (Unlimited)",
-        "Global CDN",
-        "White-label Options",
-        "Advanced Security Suite",
-        "Custom Development Support",
-        "Priority Feature Requests",
-        "Dedicated IP Addresses",
-      ],
-      cta: "Contact Sales",
-      featured: false,
-    },
-  ];
+  const { data: hostingPlans, isLoading: loadingHosting } = usePlans("hosting");
+  const { data: cloudPlans, isLoading: loadingCloud } = usePlans("cloud");
 
-  const cloudPlans = [
-    {
-      name: "Cloud Basic",
-      price: "$19",
-      period: "/month",
-      specs: {
-        cpu: "2 vCPU",
-        ram: "4GB RAM",
-        storage: "80GB SSD",
-        bandwidth: "4TB Transfer",
-      },
-    },
-    {
-      name: "Cloud Pro",
-      price: "$49",
-      period: "/month",
-      specs: {
-        cpu: "4 vCPU",
-        ram: "8GB RAM",
-        storage: "160GB SSD",
-        bandwidth: "8TB Transfer",
-      },
-    },
-    {
-      name: "Cloud Performance",
-      price: "$99",
-      period: "/month",
-      specs: {
-        cpu: "8 vCPU",
-        ram: "16GB RAM",
-        storage: "320GB SSD",
-        bandwidth: "16TB Transfer",
-      },
-    },
-    {
-      name: "Cloud Enterprise",
-      price: "$199",
-      period: "/month",
-      specs: {
-        cpu: "16 vCPU",
-        ram: "32GB RAM",
-        storage: "640GB SSD",
-        bandwidth: "32TB Transfer",
-      },
-    },
-  ];
+  const getCta = (plan: { is_featured: boolean; slug: string }) => {
+    if (plan.slug === "enterprise") return "Contact Sales";
+    if (plan.is_featured) return "Start Free Trial";
+    return "Get Started";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -153,54 +50,70 @@ const Pricing = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
-              {plans.map((plan, index) => (
-                <Card
-                  key={index}
-                  className={`relative ${
-                    plan.featured
-                      ? "border-primary shadow-glow md:scale-105 bg-card"
-                      : "hover:border-primary/50 bg-card/50 backdrop-blur"
-                  } transition-all duration-300 animate-fade-in-up`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {plan.featured && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <div className="bg-gradient-speed text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap">
-                        Most Popular
+              {loadingHosting ? (
+                [1, 2, 3].map(i => (
+                  <Card key={i} className="bg-card/50 backdrop-blur">
+                    <CardContent className="p-6 md:p-8 space-y-6">
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-12 w-24" />
+                      <div className="space-y-3">
+                        {[1, 2, 3, 4].map(j => <Skeleton key={j} className="h-4 w-full" />)}
                       </div>
-                    </div>
-                  )}
-                  <CardContent className="p-6 md:p-8 space-y-6">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-2">{plan.name}</h3>
-                      <p className="text-muted-foreground text-xs md:text-sm">{plan.description}</p>
-                    </div>
-                    <div className="flex items-baseline">
-                      <span className="text-4xl md:text-5xl font-bold text-primary">{plan.price}</span>
-                      <span className="text-muted-foreground ml-2">{plan.period}</span>
-                    </div>
-                    <ul className="space-y-3">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start space-x-3">
-                          <Check className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-xs md:text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to={dashboardLink} className="block">
-                      <Button
-                        className={`w-full ${
-                          plan.featured
-                            ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow"
-                            : "bg-secondary hover:bg-secondary/90"
-                        }`}
-                      >
-                        {plan.cta}
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                  </Card>
+                ))
+              ) : hostingPlans?.map((plan, index) => {
+                const features = Array.isArray(plan.features) ? plan.features as string[] : [];
+                return (
+                  <Card
+                    key={plan.id}
+                    className={`relative ${
+                      plan.is_featured
+                        ? "border-primary shadow-glow md:scale-105 bg-card"
+                        : "hover:border-primary/50 bg-card/50 backdrop-blur"
+                    } transition-all duration-300 animate-fade-in-up`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {plan.is_featured && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <div className="bg-gradient-speed text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold whitespace-nowrap">
+                          Most Popular
+                        </div>
+                      </div>
+                    )}
+                    <CardContent className="p-6 md:p-8 space-y-6">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold mb-2">{plan.name}</h3>
+                        <p className="text-muted-foreground text-xs md:text-sm">{plan.description}</p>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-4xl md:text-5xl font-bold text-primary">${plan.price_monthly}</span>
+                        <span className="text-muted-foreground ml-2">/month</span>
+                      </div>
+                      <ul className="space-y-3">
+                        {features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-start space-x-3">
+                            <Check className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-xs md:text-sm">{String(feature)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link to={dashboardLink} className="block">
+                        <Button
+                          className={`w-full ${
+                            plan.is_featured
+                              ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow"
+                              : "bg-secondary hover:bg-secondary/90"
+                          }`}
+                        >
+                          {getCta(plan)}
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -214,46 +127,72 @@ const Pricing = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
-              {cloudPlans.map((plan, index) => (
-                <Card
-                  key={index}
-                  className="hover:border-accent/50 hover:shadow-elegant transition-all bg-card/50 backdrop-blur animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
-                    <div>
-                      <h3 className="text-lg md:text-xl font-bold mb-2">{plan.name}</h3>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl md:text-3xl font-bold text-accent">{plan.price}</span>
-                        <span className="text-muted-foreground ml-2 text-xs md:text-sm">{plan.period}</span>
+              {loadingCloud ? (
+                [1, 2, 3, 4].map(i => (
+                  <Card key={i} className="bg-card/50 backdrop-blur">
+                    <CardContent className="p-4 md:p-6 space-y-4">
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-10 w-20" />
+                      <div className="space-y-2 pt-4 border-t border-border">
+                        {[1, 2, 3, 4].map(j => <Skeleton key={j} className="h-4 w-full" />)}
                       </div>
-                    </div>
-                    <div className="space-y-2 md:space-y-3 pt-4 border-t border-border">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">CPU</span>
-                        <span className="font-semibold">{plan.specs.cpu}</span>
+                      <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                  </Card>
+                ))
+              ) : cloudPlans?.map((plan, index) => {
+                const specs = plan.features && typeof plan.features === 'object' && !Array.isArray(plan.features)
+                  ? plan.features as Record<string, string>
+                  : {};
+                return (
+                  <Card
+                    key={plan.id}
+                    className="hover:border-accent/50 hover:shadow-elegant transition-all bg-card/50 backdrop-blur animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
+                      <div>
+                        <h3 className="text-lg md:text-xl font-bold mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline">
+                          <span className="text-2xl md:text-3xl font-bold text-accent">${plan.price_monthly}</span>
+                          <span className="text-muted-foreground ml-2 text-xs md:text-sm">/month</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">RAM</span>
-                        <span className="font-semibold">{plan.specs.ram}</span>
+                      <div className="space-y-2 md:space-y-3 pt-4 border-t border-border">
+                        {specs.cpu && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">CPU</span>
+                            <span className="font-semibold">{specs.cpu}</span>
+                          </div>
+                        )}
+                        {specs.ram && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">RAM</span>
+                            <span className="font-semibold">{specs.ram}</span>
+                          </div>
+                        )}
+                        {specs.storage && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Storage</span>
+                            <span className="font-semibold">{specs.storage}</span>
+                          </div>
+                        )}
+                        {specs.bandwidth && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Transfer</span>
+                            <span className="font-semibold">{specs.bandwidth}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Storage</span>
-                        <span className="font-semibold">{plan.specs.storage}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Transfer</span>
-                        <span className="font-semibold">{plan.specs.bandwidth}</span>
-                      </div>
-                    </div>
-                    <Link to={dashboardLink} className="block">
-                      <Button variant="outline" className="w-full">
-                        Deploy Now
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
+                      <Link to={dashboardLink} className="block">
+                        <Button variant="outline" className="w-full">
+                          Deploy Now
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
