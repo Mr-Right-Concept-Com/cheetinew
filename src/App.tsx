@@ -14,6 +14,7 @@ import { LoadingFallback } from "./components/LoadingFallback";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UserHeader } from "./components/UserHeader";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Eager load critical routes
 import Landing from "./pages/Landing";
@@ -38,6 +39,11 @@ const Backups = lazy(() => import("./pages/Backups"));
 const AetherDashboard = lazy(() => import("./pages/AetherDashboard"));
 const GitHubDeploy = lazy(() => import("./pages/GitHubDeploy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Legal pages
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 
 // Admin routes
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -71,7 +77,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
       <div className="flex-1 flex flex-col min-w-0">
         <UserHeader />
         <main className="flex-1 overflow-auto">
-          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+          </ErrorBoundary>
         </main>
       </div>
     </div>
@@ -82,11 +90,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto bg-background">
-        <div className="container mx-auto p-4 md:p-6 lg:p-8">
-          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <UserHeader />
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="container mx-auto p-4 md:p-6 lg:p-8">
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+            </ErrorBoundary>
+          </div>
+        </main>
+      </div>
     </div>
   </SidebarProvider>
 );
@@ -95,11 +108,16 @@ const ResellerLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
       <ResellerSidebar />
-      <main className="flex-1 overflow-auto bg-background">
-        <div className="container mx-auto p-4 md:p-6 lg:p-8">
-          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <UserHeader />
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="container mx-auto p-4 md:p-6 lg:p-8">
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+            </ErrorBoundary>
+          </div>
+        </main>
+      </div>
     </div>
   </SidebarProvider>
 );
@@ -118,6 +136,11 @@ const App = () => (
             <Route path="/pricing" element={<Suspense fallback={<LoadingFallback />}><Pricing /></Suspense>} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
+
+            {/* Legal Pages */}
+            <Route path="/legal/privacy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPolicy /></Suspense>} />
+            <Route path="/legal/terms" element={<Suspense fallback={<LoadingFallback />}><TermsOfService /></Suspense>} />
+            <Route path="/legal/cookies" element={<Suspense fallback={<LoadingFallback />}><CookiePolicy /></Suspense>} />
 
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />

@@ -129,7 +129,15 @@ const Notifications = () => {
               <span className="hidden sm:inline">Mark All Read</span>
               <span className="sm:hidden">Read</span>
             </Button>
-            <Button variant="outline" className="gap-2 flex-1 sm:flex-none" size="sm">
+            <Button 
+              variant="outline" 
+              className="gap-2 flex-1 sm:flex-none" 
+              size="sm"
+              onClick={() => {
+                const allIds = notifications?.map(n => n.id) || [];
+                allIds.forEach(id => deleteNotification.mutate(id));
+              }}
+            >
               <Trash2 className="h-4 w-4" />
               <span className="hidden sm:inline">Clear All</span>
               <span className="sm:hidden">Clear</span>
@@ -374,6 +382,71 @@ const Notifications = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Category Tabs */}
+          {["services", "billing", "security", "updates"].map((category) => (
+            <TabsContent key={category} value={category} className="space-y-4">
+              <Card className="bg-card/50 backdrop-blur">
+                <CardContent className="p-0">
+                  {isLoading ? (
+                    <div className="space-y-4 p-6">
+                      <Skeleton className="h-24 w-full" />
+                    </div>
+                  ) : (() => {
+                    const categoryMap: Record<string, string> = {
+                      services: "service",
+                      billing: "billing",
+                      security: "security",
+                      updates: "system",
+                    };
+                    const filtered = notifications?.filter(
+                      n => n.category === categoryMap[category] || n.type === category
+                    ) || [];
+                    
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="text-center py-12">
+                          <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">No {category} notifications</h3>
+                          <p className="text-muted-foreground">You're all caught up!</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="divide-y divide-border">
+                        {filtered.map((notification) => {
+                          const Icon = getIconForType(notification.type);
+                          return (
+                            <div
+                              key={notification.id}
+                              className={`p-6 hover:bg-muted/50 transition-colors cursor-pointer ${
+                                !notification.is_read ? "bg-muted/30" : ""
+                              }`}
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className={`w-12 h-12 rounded-lg ${getBgColor(notification.type)} flex items-center justify-center flex-shrink-0`}>
+                                  <Icon className={`h-6 w-6 ${getIconColor(notification.type)}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-4 mb-2">
+                                    <h4 className="font-semibold">{notification.title}</h4>
+                                    <p className="text-sm text-muted-foreground whitespace-nowrap">
+                                      {notification.created_at ? format(new Date(notification.created_at), 'MMM d, h:mm a') : 'N/A'}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{notification.message}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </div>

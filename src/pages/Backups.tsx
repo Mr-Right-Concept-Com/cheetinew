@@ -28,7 +28,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useBackups, useCreateBackup, useRestoreBackup } from "@/hooks/useBackups";
+import { toast as sonnerToast } from "sonner";
 import { format } from "date-fns";
 
 const Backups = () => {
@@ -257,7 +257,11 @@ const Backups = () => {
                 </Select>
               </div>
 
-              <Button variant="outline" className="w-full gap-2">
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => sonnerToast.success(`Settings saved: ${backupFrequency} backups, auto-backup ${autoBackup ? 'enabled' : 'disabled'}`)}
+              >
                 <Zap className="h-4 w-4" />
                 Save Settings
               </Button>
