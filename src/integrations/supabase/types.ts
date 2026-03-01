@@ -218,6 +218,90 @@ export type Database = {
         }
         Relationships: []
       }
+      deployments: {
+        Row: {
+          branch: string
+          build_log: string | null
+          commit_message: string | null
+          commit_sha: string | null
+          completed_at: string | null
+          created_at: string
+          deploy_url: string | null
+          duration_seconds: number | null
+          environment: string | null
+          error_message: string | null
+          github_connection_id: string | null
+          hosting_account_id: string | null
+          id: string
+          repo_full_name: string
+          repo_url: string
+          started_at: string | null
+          status: string
+          triggered_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch?: string
+          build_log?: string | null
+          commit_message?: string | null
+          commit_sha?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deploy_url?: string | null
+          duration_seconds?: number | null
+          environment?: string | null
+          error_message?: string | null
+          github_connection_id?: string | null
+          hosting_account_id?: string | null
+          id?: string
+          repo_full_name: string
+          repo_url: string
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch?: string
+          build_log?: string | null
+          commit_message?: string | null
+          commit_sha?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deploy_url?: string | null
+          duration_seconds?: number | null
+          environment?: string | null
+          error_message?: string | null
+          github_connection_id?: string | null
+          hosting_account_id?: string | null
+          id?: string
+          repo_full_name?: string
+          repo_url?: string
+          started_at?: string | null
+          status?: string
+          triggered_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_github_connection_id_fkey"
+            columns: ["github_connection_id"]
+            isOneToOne: false
+            referencedRelation: "github_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployments_hosting_account_id_fkey"
+            columns: ["hosting_account_id"]
+            isOneToOne: false
+            referencedRelation: "hosting_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dns_records: {
         Row: {
           created_at: string | null
@@ -393,6 +477,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      github_connections: {
+        Row: {
+          access_token_encrypted: string
+          avatar_url: string | null
+          created_at: string
+          github_user_id: number
+          github_username: string
+          id: string
+          scopes: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          avatar_url?: string | null
+          created_at?: string
+          github_user_id: number
+          github_username: string
+          id?: string
+          scopes?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          avatar_url?: string | null
+          created_at?: string
+          github_user_id?: number
+          github_username?: string
+          id?: string
+          scopes?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       hosting_accounts: {
         Row: {
