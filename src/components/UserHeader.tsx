@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadNotificationCount } from "@/hooks/useNotifications";
+import { CartDrawer } from "./CartDrawer";
 import { 
   User, 
   Settings, 
@@ -50,6 +51,9 @@ export const UserHeader = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Cart */}
+          <CartDrawer />
+
           {/* Notifications */}
           <Link to="/dashboard/notifications">
             <Button variant="ghost" size="icon" className="relative">
