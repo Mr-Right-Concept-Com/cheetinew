@@ -1,238 +1,225 @@
-# CheetiHost -- Full Industry-Level Implementation Plan
 
-## Modeled on Hostinger, Spaceship, Namecheap, Hosting.com, A2Hosting
+# CheetiHost -- Complete Competitor Feature Parity Implementation
 
-This plan covers fixing the build error, implementing a real GitHub Deploy system, and bringing all platform features to parity with the 5 reference hosting platforms.
+## Analysis Summary: What Competitors Have That CheetiHost Lacks
 
----
-
-## Phase 0: Fix Build Error (Immediate)
-
-**Backups.tsx** is missing imports for `useBackups`, `useCreateBackup`, `useRestoreBackup` from `@/hooks/useBackups`. Add the import line at the top of the file.
+After browsing all 5 platforms (Hostinger, Spaceship, Namecheap, Hosting.com, A2Hosting), here are the standout patterns and missing features mapped to implementation tasks.
 
 ---
 
-## Phase 1: GitHub Deploy -- Real Implementation
+## BATCH 1: Landing Page + Domain Search + Pricing Overhaul
 
-Replace the "Coming Soon" placeholder with a full GitHub deployment system.
+### 1A. Hero Domain Search Bar (Spaceship + Namecheap + Hosting.com pattern)
+All 5 competitors have a domain search bar as the primary hero element. Spaceship and Namecheap both have Register/Transfer tabs with a "Beast Mode" toggle for bulk search.
 
-**Edge Functions to create:**
+**Changes to `src/pages/Landing.tsx`:**
+- Replace current mascot hero with a domain search bar hero section
+- Add Register/Transfer tab toggle (like Spaceship and Namecheap)
+- Add "Beast Mode" button for bulk domain search
+- Show TLD pricing chips below search (.com $8.88, .net $11.20, etc.)
+- Add animated stats counter section: "4M+ Clients", "150+ Countries", "99.9% Uptime", "10M+ Sites"
+- Add trust badges row: Trustpilot 4.7 rating widget, money-back guarantee badge, review count
+- Add "Made with CheetiHost" inspiration gallery section
+- Add product category cards below hero (like Hosting.com): Shared Hosting, AI Sitebuilder, VPS, WordPress Hosting
+- Add Kodee/Cheeti AI assistant floating button (like Hostinger's "Ask Kodee")
+- Add newsletter subscribe form in footer (like Spaceship)
+- Keep existing testimonials but enhance with real review card format
 
-- `github-oauth` -- Handles GitHub OAuth flow (redirect + callback), exchanges code for access token, stores encrypted token in `github_connections` table
-- `github-repos` -- Fetches user's repositories from GitHub API using stored token
-- `github-deploy` -- Triggers a deployment: clones repo, builds, and deploys to the user's hosting account
+### 1B. Pricing Page Overhaul (Hostinger + Spaceship pattern)
+Hostinger has: hosting type tabs (Web/VPS/WordPress/Cloud/Agency), billing period selector (1/12/24/48 months), strikethrough original prices, "MOST POPULAR" badges, "+3 months free" badges.
 
-**Frontend (`src/pages/GitHubDeploy.tsx`):**
+**Changes to `src/pages/Pricing.tsx`:**
+- Add hosting type tabs at top: Web Hosting | VPS | Website Builder | Cloud | Domains | Email
+- Add billing period toggle: Monthly | Yearly | Biyearly (with "BEST VALUE" badge)
+- Show strikethrough original price with discount percentage badge (e.g., "85% OFF")
+- Show "Renews at $X.XX/mo" below discounted price
+- Add "+3 months free" or similar promotional badge
+- Add "30-day money-back guarantee" + "24/7 support" + "Cancel anytime" trust strip
+- Add feature comparison matrix table below plan cards (expandable "View all features")
+- Add FAQ accordion section at bottom
+- Add "Not sure which plan?" CTA with Cheeti AI recommendation
+- Wire "Add to Cart" buttons to the cart system
 
-- If no GitHub connection exists: Show "Connect GitHub" button that initiates OAuth
-- If connected: Show repository list (fetched via edge function), branch selector, deploy button
-- Deployment history table from `deployments` table with status badges, logs viewer
-- Auto-deploy toggle per repo (webhook-based)
-
-**Required secrets:** `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` -- will prompt user to provide these but for the main time use demo id and secret  and make it easy for admin to change later to real without rebuilding 
-
----
-
-## Phase 2: Domain Search and Registration Flow (Namecheap/Spaceship Style)
-
-**New Features:**
-
-- Domain search bar on Landing page and Domains page with TLD pricing (.com, .net, .org, .io)
-- "Beast Mode" bulk domain search (search multiple names at once, like Spaceship/Namecheap)
-- Domain transfer flow with auth code input and bulk transfer support
-- Domain registration form with WHOIS privacy toggle, auto-renew, and nameserver configuration
-- Add DNS Record dialog (A, AAAA, CNAME, MX, TXT, NS, SRV) with validation
-
-**Files to modify:**
-
-- `src/pages/Domains.tsx` -- Add search, bulk operations, DNS record creation dialog
-- `src/pages/Landing.tsx` -- Add domain search bar in hero section (like Hostinger/Spaceship)
-
----
-
-## Phase 3: Cart and Checkout System
-
-**New Files:**
-
-- `src/hooks/useCart.ts` -- Cart state management with localStorage persistence
-- `src/components/CartDrawer.tsx` -- Slide-out cart panel showing items, quantities, totals
-- `src/pages/Checkout.tsx` -- Multi-step checkout: Review > Billing Info > Payment > Confirmation
-- Route: `/checkout`
-
-**Flow:** User adds plan/domain/service to cart from Pricing, Domains, or service pages. Cart icon in header shows item count. Checkout integrates with existing payment gateway factory (Stripe/Paystack/Flutterwave). After payment, triggers provisioning edge functions.
-
-**Database:** Create `cart_items` table for logged-in user cart persistence.
+### 1C. Domain Search Component (New: `src/components/DomainSearch.tsx`)
+Reusable domain search component used on both Landing and Domains pages.
+- Single domain search with TLD suggestions
+- Beast Mode: textarea for bulk domain input (multiple domains, one per line)
+- Transfer mode: domain + auth code input
+- Results show availability, price per TLD, "Add to Cart" button
+- Domain name generator/suggestions powered by Cheeti AI
 
 ---
 
-## Phase 4: Hosting Page -- Industry Features (Hostinger/A2Hosting Level)
+## BATCH 2: Hosting Dashboard + Domains Management
 
-**Enhancements to `src/pages/Hosting.tsx`:**
+### 2A. Hosting Page Enhancement (Hostinger + A2Hosting level)
+Competitors have tabbed management interfaces per hosting account with deep controls.
 
-- One-click app installer (WordPress, Joomla, Laravel, Node.js) with visual cards
-- File Manager tab with directory browser UI
-- SSH/SFTP access credentials display with copy-to-clipboard
-- PHP version selector dropdown
-- Resource usage charts (CPU, RAM, Disk, Bandwidth) using Recharts
-- Access logs viewer
-- Cron job manager (list, create, delete)
-- Wire all dropdown buttons: Restart Server calls edge function, Create Backup triggers backup creation, SSL Certificate shows certificate status dialog
+**Changes to `src/pages/Hosting.tsx`:**
+- Add tabbed interface per site: Overview | File Manager | Databases | Email | Domains | SSL | Backups | Logs | Cron Jobs
+- **One-Click App Installer**: Visual cards for WordPress, Joomla, Laravel, Node.js, Ghost, Drupal with "Install" buttons
+- **File Manager Tab**: Directory tree browser UI with breadcrumb path, file list with name/size/date/permissions, upload/download/delete/rename actions
+- **SSH/SFTP Access**: Credentials display card with copy-to-clipboard for host, port, username, password
+- **PHP Version Selector**: Dropdown to switch PHP versions (7.4, 8.0, 8.1, 8.2, 8.3)
+- **Resource Usage Charts**: CPU, RAM, Disk, Bandwidth over time using Recharts (line/area charts)
+- **Access Logs Viewer**: Scrollable log viewer with date/IP/request/status columns
+- **Cron Job Manager**: List existing cron jobs, create new (schedule + command), delete
+- **Site Migration**: "Migrate from another host" wizard with step-by-step flow
+- Wire all dropdown buttons to real actions: Restart Server calls edge function, Create Backup triggers backup creation, SSL Certificate shows status dialog
 
----
+### 2B. Domains Page Enhancement (Namecheap + Spaceship level)
+Namecheap has: domain search in header, bulk transfer with auth codes, WHOIS privacy toggle, auto-renew toggle, nameserver presets. Spaceship has: Connection Manager, Transfer Manager, DNS management.
 
-## Phase 5: Billing Enhancements (Hostinger/Namecheap Level)
-
-**Enhancements to `src/pages/Billing.tsx`:**
-
-- "Download Invoice" button generates PDF (or opens invoice detail page)
-- "Change Plan" button opens plan upgrade/downgrade dialog showing current vs new plan comparison
-- "Switch to Annual/Monthly" billing toggle with savings calculation
-- Add Payment Method form (card number, expiry, CVC) with Stripe Elements integration
-- Transaction history with filtering by date range, status, and type
-- Promo code / coupon input field
-
----
-
-## Phase 6: Email -- Webmail Interface (Spaceship Spacemail Level)
-
-**Enhancements to `src/pages/Email.tsx`:**
-
-- Inbox view with message list (sender, subject, date, read/unread status)
-- Compose email dialog with rich text editor
-- Folder navigation (Inbox, Sent, Drafts, Spam, Trash)
-- Email forwarding rules configuration
-- Autoresponder setup form
-- Spam filter level configuration (Low/Medium/High/Custom)
-- Storage usage bar per mailbox
-
-Note: Since we don't have a real mail server, the inbox/compose will show the management UI with a note that webmail access is via the configured mail provider. The configuration and account management will be fully functional.
+**Changes to `src/pages/Domains.tsx`:**
+- Add domain search/register section at top of page (reuse DomainSearch component)
+- Add "Bulk Transfer" tab: textarea for multiple domains with auth codes (domain, authcode per line)
+- Add DNS Record creation dialog: Type selector (A, AAAA, CNAME, MX, TXT, NS, SRV), Name, Value, TTL, Priority fields with validation
+- Add DNS record inline editing (click to edit, save/cancel)
+- Add WHOIS privacy toggle per domain (on/off switch, persists to DB)
+- Add auto-renew toggle per domain
+- Add nameserver configuration form: custom nameserver inputs (ns1, ns2, ns3, ns4)
+- Add domain lock/unlock toggle with confirmation dialog
+- Add "Renew Domain" button with renewal period selector
 
 ---
 
-## Phase 7: Website Builder -- Template Gallery (Hosting.com/Hostinger Level)
+## BATCH 3: Billing + Email + Security
 
-**Enhancements to `src/pages/WebsiteBuilder.tsx`:**
+### 3A. Billing Enhancements (Hostinger + Namecheap level)
 
-- Template gallery with category filters (Business, Portfolio, Blog, E-commerce, Landing Page)
-- Template preview cards with "Use Template" and "Preview" buttons
-- Site list showing user's builder sites with edit/publish/delete actions
-- AI site generator prompt input ("Describe your website and we'll build it")
-- Publish/unpublish toggle per site
-- Custom domain assignment per builder site
+**Changes to `src/pages/Billing.tsx`:**
+- **Invoice PDF Download**: Generate PDF from invoice data (client-side using a simple HTML-to-print approach) or link to invoice detail page
+- **Change Plan Dialog**: Shows current plan vs available plans with feature comparison, upgrade/downgrade confirmation
+- **Billing Period Toggle**: Switch between Monthly/Annual with savings calculation display
+- **Add Payment Method**: Form with card number, expiry, CVC inputs (Stripe Elements style UI)
+- **Promo Code Input**: Coupon/promo code field with "Apply" button
+- **Transaction History**: Filterable table by date range, status (completed/pending/failed), and type (payment/refund)
+- **Usage-Based Billing Summary**: Show current period charges breakdown by service
 
----
+### 3B. Email Page Enhancement (Spaceship Spacemail level)
+Spaceship has: inbox view, compose, folders, forwarding rules, autoresponder, spam filter levels.
 
-## Phase 8: Security Center -- WAF and Scanning (Spaceship Level)
+**Changes to `src/pages/Email.tsx`:**
+- Add tabbed interface: Mailboxes | Inbox (demo) | Compose | Settings | Forwarding | Autoresponder
+- **Inbox Demo View**: Message list with sender, subject, date, read/unread toggle, starring. Note banner: "Full webmail access via your configured mail provider"
+- **Compose Dialog**: To/CC/BCC fields, subject, rich text body, send button
+- **Folder Navigation**: Sidebar with Inbox, Sent, Drafts, Spam, Trash folders with unread counts
+- **Forwarding Rules**: Table of rules with condition/action, add/edit/delete
+- **Autoresponder Setup**: Enable/disable toggle, subject, message body, date range
+- **Spam Filter Level**: Radio group (Low/Medium/High/Custom) with description per level
+- **Storage Usage Bar**: Per-mailbox storage used vs quota with percentage
 
-**Enhancements to `src/pages/Security.tsx`:**
+### 3C. Security Center Enhancement (Spaceship level)
+Spaceship has: DNSSEC, DDoS prevention, free domain privacy, SSL redirects, suspicious login monitoring, 2FA, passkeys, Imunify360 protection.
 
-- WAF toggle that persists state to `system_settings`
-- Security scan button that creates an audit log entry and shows scan results
-- IP blocklist manager (add/remove IPs)
-- Two-factor authentication setup (enable/disable 2FA)
-- Login activity log from `audit_logs`
-- SSL certificate management per domain with renew/install buttons
-
----
-
-## Phase 9: Support -- Live Chat and Knowledge Base (Hostinger Level)
-
-**Enhancements to `src/pages/Support.tsx`:**
-
-- Live chat widget integration (CheetiAI chatbot for instant answers)
-- Knowledge base section with searchable articles (stored in system_settings or a new table)
-- Video tutorial cards with embedded video player
-- Ticket detail view with message thread (using `ticket_messages` table)
-- Ticket status updates (open/in-progress/resolved)
-- Real-time stats from actual ticket data
-
----
-
-## Phase 10: Notifications -- Full Category Filtering
-
-**Enhancements to `src/pages/Notifications.tsx`:**
-
-- Category tabs (Services, Billing, Security, Updates) filter notifications by `category` field
-- "Clear All" deletes all read notifications
-- Mark individual notifications as read/unread
-- Notification preferences page (email/push/in-app toggles per category)
+**Changes to `src/pages/Security.tsx`:**
+- **WAF Toggle**: On/off switch that persists to `system_settings` table, shows WAF event count
+- **Security Scan**: Button that creates an audit log entry, shows scan results (mock scan with real log creation)
+- **IP Blocklist Manager**: Add IP address input, list of blocked IPs with remove button
+- **Two-Factor Authentication**: Enable/disable 2FA with QR code setup flow
+- **Login Activity Log**: Table showing recent logins with date, IP, device, location, status from `audit_logs`
+- **SSL Certificate Manager**: Per-domain SSL status cards with renew/install buttons
+- **DNSSEC Status**: Per-domain DNSSEC enable/disable toggle
+- **Suspicious Login Alerts**: Toggle email notifications for new device logins
 
 ---
 
-## Phase 11: Landing Page -- Industry-Level Hero (Hostinger/Spaceship Style)
+## BATCH 4: Support + Notifications + Website Builder
 
-**Enhancements to `src/pages/Landing.tsx`:**
+### 4A. Support Enhancement (Hostinger level)
+Hostinger has: Kodee AI assistant, knowledge base with search, video tutorials, live chat, ticket threading.
 
-- Hero section with domain search bar (Register/Transfer tabs like Spaceship)
-- Animated stats counter (sites hosted, domains managed, uptime percentage)
-- Customer testimonials carousel
-- Feature comparison table (CheetiHost vs competitors)
-- Trust badges (Trustpilot rating, money-back guarantee, uptime SLA)
-- Dynamic pricing section from `plans` table (already done in Pricing.tsx, replicate here)
+**Changes to `src/pages/Support.tsx`:**
+- **CheetiAI Chat Widget**: Embedded chat interface that uses the existing CheetiAI component for instant answers
+- **Knowledge Base Section**: Searchable article cards organized by category (Getting Started, Hosting, Domains, Email, Billing, Security)
+- **Video Tutorials**: Cards with embedded placeholder thumbnails, "Watch" button opens modal video player
+- **Ticket Detail View**: Click a ticket to expand into threaded message view using `ticket_messages` table
+- **Ticket Status Updates**: Staff can update status (open/in-progress/resolved) inline
+- **Live Chat Button**: Opens CheetiAI in a full-screen chat mode
+- Real stats from `support_tickets` data (already partially done)
+
+### 4B. Notifications Enhancement
+
+**Changes to `src/pages/Notifications.tsx`:**
+- Category tab filters actually filter by `category` field: Services, Billing, Security, Updates
+- "Clear All" button deletes all read notifications (with confirmation)
+- Individual notification mark as read/unread toggle
+- **Notification Preferences Page**: Email/push/in-app toggles per category (persisted to `system_settings`)
+
+### 4C. Website Builder Enhancement (Hosting.com + Hostinger level)
+Hosting.com has: AI Sitebuilder ($4.99/mo). Hostinger has: AI Website Builder, drag-and-drop editor, template gallery.
+
+**Changes to `src/pages/WebsiteBuilder.tsx`:**
+- **Template Gallery**: Category filter tabs (Business, Portfolio, Blog, E-commerce, Landing Page) that actually filter the template list
+- **Template Preview Modal**: Click "Preview" opens full-screen preview of template
+- **Site List**: Show user's builder sites with status (draft/published), edit/publish/delete actions, last modified date
+- **AI Site Generator**: Text input prompt "Describe your website and we'll build it" with generate button
+- **Publish/Unpublish Toggle**: Per site with deploy URL display
+- **Custom Domain Assignment**: Dropdown to assign a user's domain to a builder site
 
 ---
 
-## Phase 12: Pricing Page -- Plan Comparison (A2Hosting/Namecheap Level)
+## BATCH 5: Onboarding + Command Palette + Global Polish
 
-**Enhancements to `src/pages/Pricing.tsx`:**
+### 5A. Onboarding Wizard (Hostinger + Spaceship pattern)
+Both competitors guide new users through: Choose product -> Configure -> Launch.
 
-- Billing period toggle (Monthly / Annually / Biennially) with savings badges
-- Feature comparison matrix across all plans
-- "Add to Cart" buttons that integrate with the cart system
-- Money-back guarantee badge
-- FAQ accordion section
+**New Component: `src/components/OnboardingWizard.tsx`**
+- Step 1: "What do you want to do?" (Build a website / Register a domain / Set up email / Deploy from GitHub)
+- Step 2: Based on choice, guide to relevant page with pre-filled data
+- Step 3: Success confirmation with next steps
+- Shows only for users with no hosting accounts, domains, or cloud instances
+- "Skip" and "Don't show again" options (persisted to profile or localStorage)
+
+### 5B. Command Palette / Launchpad Enhancement (Spaceship pattern)
+Spaceship has a "Launchpad" (Ctrl+K) for instant navigation and search.
+
+**Changes to `src/components/CommandPalette.tsx`:**
+- Ensure Ctrl+K / Cmd+K opens the palette
+- Add categories: Navigation, Services, Support, Admin
+- Add recent items section
+- Add fuzzy search across all pages, domains, hosting accounts
+
+### 5C. Footer + Global Polish
+- Update copyright to 2026 (already done in some places)
+- Add Company pages: About Us, Contact, Careers, Blog, Status with real content or "Coming Soon" notices
+- Add newsletter subscribe form in footer
+- Add social media links in footer
+- Add "Made with CheetiHost" showcase section
 
 ---
 
 ## Technical Implementation Details
 
-### New Database Tables
-
-- `cart_items` (user_id, plan_id, item_type, quantity, price, metadata, created_at)
-
-### New Edge Functions
-
-- `github-oauth` -- GitHub OAuth exchange
-- `github-repos` -- Fetch user repos from GitHub API
-- `github-deploy` -- Trigger deployment
-
-### New Hooks
-
-- `src/hooks/useCart.ts` -- Cart CRUD with local + DB persistence
-- `src/hooks/useGitHub.ts` -- GitHub connection, repos, deployments
-
 ### New Components
+- `src/components/DomainSearch.tsx` -- Reusable domain search with Register/Transfer/Beast Mode
+- `src/components/OnboardingWizard.tsx` -- Step-by-step new user guide
+- `src/components/hosting/FileManager.tsx` -- File browser UI
+- `src/components/hosting/OneClickApps.tsx` -- App installer cards
+- `src/components/hosting/CronManager.tsx` -- Cron job CRUD
+- `src/components/hosting/ResourceCharts.tsx` -- CPU/RAM/Disk/Bandwidth charts
+- `src/components/billing/ChangePlanDialog.tsx` -- Plan upgrade/downgrade
+- `src/components/billing/AddPaymentMethod.tsx` -- Card entry form
+- `src/components/email/InboxView.tsx` -- Demo inbox UI
+- `src/components/email/ComposeDialog.tsx` -- Email compose form
+- `src/components/security/IPBlocklist.tsx` -- IP block/unblock manager
+- `src/components/security/TwoFactorSetup.tsx` -- 2FA configuration
 
-- `src/components/CartDrawer.tsx` -- Cart slide-out panel
-- `src/components/DomainSearch.tsx` -- Domain search with TLD pricing
-- `src/components/TemplateGallery.tsx` -- Website builder templates
-
-### New Pages
-
-- `src/pages/Checkout.tsx` -- Multi-step checkout flow
-
-### Modified Files (Summary)
-
-- `src/pages/Backups.tsx` -- Fix missing imports
-- `src/pages/GitHubDeploy.tsx` -- Full rebuild with OAuth + repo list + deploy
-- `src/pages/Domains.tsx` -- Add search bar, DNS dialog, bulk operations
-- `src/pages/Hosting.tsx` -- Add one-click apps, file manager, resource charts
-- `src/pages/Billing.tsx` -- Add payment forms, invoice download, plan change
-- `src/pages/Email.tsx` -- Add inbox UI, compose, folder navigation
-- `src/pages/WebsiteBuilder.tsx` -- Add template gallery, site management
-- `src/pages/Security.tsx` -- WAF controls, IP blocklist, scan button
-- `src/pages/Support.tsx` -- Chat widget, knowledge base, ticket threads
+### Modified Pages (all existing)
+- `src/pages/Landing.tsx` -- Domain search hero, stats, trust badges, product cards
+- `src/pages/Pricing.tsx` -- Billing toggle, comparison matrix, FAQ, hosting type tabs
+- `src/pages/Hosting.tsx` -- Tabbed management, one-click apps, file manager, resource charts
+- `src/pages/Domains.tsx` -- Domain search, bulk transfer, DNS record dialog, WHOIS/nameserver config
+- `src/pages/Billing.tsx` -- Invoice download, plan change, payment method form, promo codes
+- `src/pages/Email.tsx` -- Inbox demo, compose, forwarding rules, autoresponder, spam filter
+- `src/pages/Security.tsx` -- WAF toggle, IP blocklist, 2FA setup, login activity, DNSSEC
+- `src/pages/Support.tsx` -- Chat widget, knowledge base, video tutorials, ticket threading
 - `src/pages/Notifications.tsx` -- Category filtering, clear all, preferences
-- `src/pages/Landing.tsx` -- Domain search hero, testimonials, trust badges
-- `src/pages/Pricing.tsx` -- Billing toggle, comparison matrix, add-to-cart
-- `src/components/UserHeader.tsx` -- Add cart icon with item count
-- `src/App.tsx` -- Add checkout route
+- `src/pages/WebsiteBuilder.tsx` -- Template filtering, site management, AI generator
 
 ### Execution Order
-
-All phases will be implemented in parallel batches:
-
-1. **Batch 1:** Phase 0 (build fix) + Phase 1 (GitHub) + Phase 3 (Cart/Checkout)
-2. **Batch 2:** Phase 2 (Domains) + Phase 4 (Hosting) + Phase 5 (Billing)
-3. **Batch 3:** Phase 6 (Email) + Phase 7 (Builder) + Phase 8 (Security)
-4. **Batch 4:** Phase 9 (Support) + Phase 10 (Notifications) + Phase 11 (Landing) + Phase 12 (Pricing)
+1. **Batch 1**: Landing hero + Domain Search component + Pricing overhaul
+2. **Batch 2**: Hosting tabbed management + Domains DNS/transfer
+3. **Batch 3**: Billing forms + Email webmail UI + Security WAF/2FA
+4. **Batch 4**: Support chat/KB + Notifications filters + Website Builder
+5. **Batch 5**: Onboarding wizard + Command palette + Footer polish
