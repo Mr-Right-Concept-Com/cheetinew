@@ -5,32 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  CreditCard,
-  Download,
-  AlertCircle,
-  CheckCircle,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Plus,
-  ExternalLink,
+  CreditCard, Download, AlertCircle, CheckCircle, Calendar, DollarSign, TrendingUp, Plus, ExternalLink,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { useSubscriptions, useCancelSubscription, useInvoices, usePaymentMethods, useSetDefaultPaymentMethod, useDeletePaymentMethod } from "@/hooks/useBilling";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AddPaymentMethodDialog } from "@/components/billing/AddPaymentMethodDialog";
+import { ChangePlanDialog } from "@/components/billing/ChangePlanDialog";
 
 const Billing = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelSubId, setCancelSubId] = useState<string | null>(null);
+  const [addPaymentOpen, setAddPaymentOpen] = useState(false);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
+  const [changePlanName, setChangePlanName] = useState("");
   
   const { data: subscriptions, isLoading: loadingSubs } = useSubscriptions();
   const { data: invoices, isLoading: loadingInvoices } = useInvoices();
@@ -222,7 +214,7 @@ const Billing = () => {
                           </strong>
                         </p>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => toast.info("Plan change will be available in the next release.")}>Change Plan</Button>
+                          <Button variant="outline" size="sm" onClick={() => { setChangePlanName(sub.plan_name); setChangePlanOpen(true); }}>Change Plan</Button>
                           <Button 
                             variant="destructive" 
                             size="sm"
@@ -297,7 +289,11 @@ const Billing = () => {
                             variant="ghost" 
                             size="sm" 
                             className="gap-2"
-                            onClick={() => toast.success(`Downloading invoice ${invoice.invoice_number || invoice.id.slice(0, 8)}...`)}
+                            onClick={() => {
+                              const invoiceHtml = `<html><head><title>Invoice ${invoice.invoice_number}</title><style>body{font-family:sans-serif;padding:40px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border:1px solid #ddd;text-align:left}</style></head><body><h1>Invoice ${invoice.invoice_number}</h1><p>Date: ${invoice.created_at ? format(new Date(invoice.created_at), 'MMM d, yyyy') : 'N/A'}</p><p>Status: ${invoice.status}</p><h2>Total: $${invoice.total}</h2><p>CheetiHost Inc.</p></body></html>`;
+                              const w = window.open('', '_blank');
+                              if (w) { w.document.write(invoiceHtml); w.document.close(); w.print(); }
+                            }}
                           >
                             <Download className="h-4 w-4" />
                             PDF
@@ -319,7 +315,7 @@ const Billing = () => {
                   <CardTitle>Payment Methods</CardTitle>
                   <CardDescription>Manage your saved payment methods</CardDescription>
                 </div>
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => setAddPaymentOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Add Payment Method
                 </Button>
