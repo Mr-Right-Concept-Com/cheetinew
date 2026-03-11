@@ -1,22 +1,20 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Bell,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  TrendingUp,
-  Shield,
-  CreditCard,
-  Server,
-  Clock,
-  Trash2,
+  Bell, CheckCircle, AlertCircle, Info, TrendingUp, Shield,
+  CreditCard, Server, Clock, Trash2,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { LucideIcon } from "lucide-react";
 
 const Notifications = () => {
@@ -24,431 +22,206 @@ const Notifications = () => {
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const deleteNotification = useDeleteNotification();
+  const [clearAllOpen, setClearAllOpen] = useState(false);
 
   const getIconForType = (type: string): LucideIcon => {
-    switch (type) {
-      case "success":
-        return CheckCircle;
-      case "warning":
-        return AlertCircle;
-      case "info":
-        return Info;
-      case "billing":
-        return CreditCard;
-      case "security":
-        return Shield;
-      case "performance":
-        return TrendingUp;
-      default:
-        return Bell;
-    }
+    const map: Record<string, LucideIcon> = {
+      success: CheckCircle, warning: AlertCircle, info: Info,
+      billing: CreditCard, security: Shield, performance: TrendingUp,
+    };
+    return map[type] || Bell;
   };
 
   const getIconColor = (type: string) => {
-    switch (type) {
-      case "success":
-        return "text-green-500";
-      case "warning":
-        return "text-accent";
-      case "info":
-        return "text-primary";
-      case "billing":
-        return "text-primary";
-      case "security":
-        return "text-accent";
-      case "performance":
-        return "text-primary";
-      default:
-        return "text-muted-foreground";
-    }
+    const map: Record<string, string> = {
+      success: "text-green-500", warning: "text-accent", info: "text-primary",
+      billing: "text-primary", security: "text-accent", performance: "text-primary",
+    };
+    return map[type] || "text-muted-foreground";
   };
 
   const getBgColor = (type: string) => {
-    switch (type) {
-      case "success":
-        return "bg-green-500/10";
-      case "warning":
-        return "bg-accent/10";
-      case "info":
-        return "bg-primary/10";
-      case "billing":
-        return "bg-primary/10";
-      case "security":
-        return "bg-accent/10";
-      case "performance":
-        return "bg-primary/10";
-      default:
-        return "bg-muted";
-    }
+    const map: Record<string, string> = {
+      success: "bg-green-500/10", warning: "bg-accent/10", info: "bg-primary/10",
+      billing: "bg-primary/10", security: "bg-accent/10", performance: "bg-primary/10",
+    };
+    return map[type] || "bg-muted";
   };
 
-  const unreadCount = notifications?.filter((n) => !n.is_read).length || 0;
+  const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
   const todayCount = notifications?.filter(n => {
     if (!n.created_at) return false;
-    const today = new Date();
-    const notifDate = new Date(n.created_at);
-    return notifDate.toDateString() === today.toDateString();
+    return new Date(n.created_at).toDateString() === new Date().toDateString();
   }).length || 0;
 
-  const handleMarkAsRead = async (id: string) => {
-    await markAsRead.mutateAsync(id);
-  };
-
-  const handleMarkAllAsRead = async () => {
-    // Mark all unread notifications as read
-    const unreadIds = notifications?.filter(n => !n.is_read).map(n => n.id) || [];
-    for (const id of unreadIds) {
-      await markAsRead.mutateAsync(id);
+  const handleClearRead = async () => {
+    const readNotifications = notifications?.filter(n => n.is_read) || [];
+    if (readNotifications.length === 0) {
+      toast.info("No read notifications to clear");
+      setClearAllOpen(false);
+      return;
     }
+    for (const n of readNotifications) {
+      await deleteNotification.mutateAsync(n.id);
+    }
+    toast.success(`Cleared ${readNotifications.length} read notifications`);
+    setClearAllOpen(false);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteNotification.mutateAsync(id);
+  const categoryMap: Record<string, string> = {
+    services: "service",
+    billing: "billing",
+    security: "security",
+    updates: "system",
+  };
+
+  const filterByCategory = (category: string) => {
+    const dbCategory = categoryMap[category];
+    return notifications?.filter(n => n.category === dbCategory || n.type === category) || [];
+  };
+
+  const renderNotificationList = (items: typeof notifications) => {
+    if (!items || items.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Notifications</h3>
+          <p className="text-muted-foreground">You're all caught up!</p>
+        </div>
+      );
+    }
+    return (
+      <div className="divide-y divide-border">
+        {items.map(notification => {
+          const Icon = getIconForType(notification.type);
+          return (
+            <div key={notification.id}
+              className={`p-4 md:p-6 hover:bg-muted/50 transition-colors ${!notification.is_read ? "bg-muted/30" : ""}`}>
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg ${getBgColor(notification.type)} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className={`h-5 w-5 md:h-6 md:w-6 ${getIconColor(notification.type)}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-sm md:text-base">{notification.title}</h4>
+                      {!notification.is_read && <div className="w-2 h-2 rounded-full bg-primary" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">
+                      {notification.created_at ? format(new Date(notification.created_at), "MMM d, h:mm a") : "N/A"}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
+                  <div className="flex gap-2">
+                    {notification.category && (
+                      <Badge variant="outline" className="text-xs capitalize">{notification.category}</Badge>
+                    )}
+                    {!notification.is_read && (
+                      <Button variant="ghost" size="sm" className="h-6 text-xs"
+                        onClick={() => markAsRead.mutate(notification.id)}>Mark Read</Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="h-6 text-xs text-destructive"
+                      onClick={() => deleteNotification.mutate(notification.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 truncate">Notifications</h1>
-            <p className="text-sm md:text-base text-muted-foreground">
-              Stay updated with your services and activities
-            </p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Notifications</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Stay updated with your services</p>
           </div>
-          <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
-            <Button 
-              variant="outline" 
-              className="gap-2 flex-1 sm:flex-none" 
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              disabled={markAllAsRead.isPending}
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Mark All Read</span>
-              <span className="sm:hidden">Read</span>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none"
+              onClick={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
+              <CheckCircle className="h-4 w-4" /><span className="hidden sm:inline">Mark All Read</span><span className="sm:hidden">Read</span>
             </Button>
-            <Button 
-              variant="outline" 
-              className="gap-2 flex-1 sm:flex-none" 
-              size="sm"
-              onClick={() => {
-                const allIds = notifications?.map(n => n.id) || [];
-                allIds.forEach(id => deleteNotification.mutate(id));
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Clear All</span>
-              <span className="sm:hidden">Clear</span>
+            <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none"
+              onClick={() => setClearAllOpen(true)}>
+              <Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Clear Read</span><span className="sm:hidden">Clear</span>
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3 md:gap-4">
-                <div className="p-2 md:p-3 rounded-lg bg-primary/10">
-                  <Bell className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Unread", value: unreadCount, icon: Bell, bg: "bg-primary/10", color: "text-primary" },
+            { label: "Today", value: todayCount, icon: Clock, bg: "bg-accent/10", color: "text-accent" },
+            { label: "Total", value: notifications?.length || 0, icon: CheckCircle, bg: "bg-green-500/10", color: "text-green-500" },
+            { label: "Systems", value: "OK", icon: Server, bg: "bg-primary/10", color: "text-primary" },
+          ].map((stat, i) => (
+            <Card key={i} className="bg-card/50 backdrop-blur">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${stat.bg}`}><stat.icon className={`h-5 w-5 ${stat.color}`} /></div>
+                  <div>{isLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-xl font-bold">{stat.value}</p>}<p className="text-xs text-muted-foreground">{stat.label}</p></div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  {isLoading ? (
-                    <Skeleton className="h-8 w-12" />
-                  ) : (
-                    <p className="text-xl md:text-2xl font-bold truncate">{unreadCount}</p>
-                  )}
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">Unread</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-accent/10">
-                  <Clock className="h-6 w-6 text-accent" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">Today</p>
-                  <p className="text-sm text-muted-foreground">{todayCount} new updates</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-green-500/10">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  {isLoading ? (
-                    <Skeleton className="h-8 w-12" />
-                  ) : (
-                    <p className="text-2xl font-bold">{notifications?.length || 0}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">Total</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Server className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">All</p>
-                  <p className="text-sm text-muted-foreground">Systems OK</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Notifications List */}
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full max-w-3xl">
-            <TabsTrigger value="all">
-              All ({notifications?.length || 0})
-            </TabsTrigger>
-            <TabsTrigger value="unread">
-              Unread ({unreadCount})
-            </TabsTrigger>
+            <TabsTrigger value="all">All ({notifications?.length || 0})</TabsTrigger>
+            <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="billing" className="hidden sm:flex">Billing</TabsTrigger>
             <TabsTrigger value="security" className="hidden sm:flex">Security</TabsTrigger>
             <TabsTrigger value="updates" className="hidden sm:flex">Updates</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-4">
-            <Card className="bg-card/50 backdrop-blur">
-              <CardContent className="p-0">
-                {isLoading ? (
-                  <div className="space-y-4 p-6">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-24 w-full" />
-                    ))}
-                  </div>
-                ) : notifications?.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Notifications</h3>
-                    <p className="text-muted-foreground">You're all caught up!</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {notifications?.map((notification) => {
-                      const Icon = getIconForType(notification.type);
-                      return (
-                        <div
-                          key={notification.id}
-                          className={`p-6 hover:bg-muted/50 transition-colors cursor-pointer ${
-                            !notification.is_read ? "bg-muted/30" : ""
-                          }`}
-                        >
-                          <div className="flex items-start gap-4">
-                            <div
-                              className={`w-12 h-12 rounded-lg ${getBgColor(
-                                notification.type
-                              )} flex items-center justify-center flex-shrink-0`}
-                            >
-                              <Icon className={`h-6 w-6 ${getIconColor(notification.type)}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-4 mb-2">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold">{notification.title}</h4>
-                                  {!notification.is_read && (
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground whitespace-nowrap">
-                                  {notification.created_at 
-                                    ? format(new Date(notification.created_at), 'MMM d, h:mm a')
-                                    : 'N/A'
-                                  }
-                                </p>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-3">
-                                {notification.message}
-                              </p>
-                              <div className="flex gap-2">
-                                {!notification.is_read && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => handleMarkAsRead(notification.id)}
-                                  >
-                                    Mark as Read
-                                  </Button>
-                                )}
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(notification.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="all">
+            <Card className="bg-card/50 backdrop-blur"><CardContent className="p-0">
+              {isLoading ? <div className="p-6 space-y-4">{[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div> : renderNotificationList(notifications)}
+            </CardContent></Card>
           </TabsContent>
 
-          <TabsContent value="unread" className="space-y-4">
-            <Card className="bg-card/50 backdrop-blur">
-              <CardContent className="p-0">
-                {isLoading ? (
-                  <div className="space-y-4 p-6">
-                    <Skeleton className="h-24 w-full" />
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {notifications
-                      ?.filter((n) => !n.is_read)
-                      .map((notification) => {
-                        const Icon = getIconForType(notification.type);
-                        return (
-                          <div
-                            key={notification.id}
-                            className="p-6 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-start gap-4">
-                              <div
-                                className={`w-12 h-12 rounded-lg ${getBgColor(
-                                  notification.type
-                                )} flex items-center justify-center flex-shrink-0`}
-                              >
-                                <Icon className={`h-6 w-6 ${getIconColor(notification.type)}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4 mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <h4 className="font-semibold">{notification.title}</h4>
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                  </div>
-                                  <p className="text-sm text-muted-foreground whitespace-nowrap">
-                                    {notification.created_at 
-                                      ? format(new Date(notification.created_at), 'MMM d, h:mm a')
-                                      : 'N/A'
-                                    }
-                                  </p>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  {notification.message}
-                                </p>
-                                <div className="flex gap-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => handleMarkAsRead(notification.id)}
-                                  >
-                                    Mark as Read
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-destructive"
-                                    onClick={() => handleDelete(notification.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    {notifications?.filter(n => !n.is_read).length === 0 && (
-                      <div className="text-center py-12">
-                        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">All Caught Up!</h3>
-                        <p className="text-muted-foreground">No unread notifications.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="unread">
+            <Card className="bg-card/50 backdrop-blur"><CardContent className="p-0">
+              {isLoading ? <div className="p-6"><Skeleton className="h-24 w-full" /></div> : renderNotificationList(notifications?.filter(n => !n.is_read))}
+            </CardContent></Card>
           </TabsContent>
-          {/* Category Tabs */}
-          {["services", "billing", "security", "updates"].map((category) => (
-            <TabsContent key={category} value={category} className="space-y-4">
-              <Card className="bg-card/50 backdrop-blur">
-                <CardContent className="p-0">
-                  {isLoading ? (
-                    <div className="space-y-4 p-6">
-                      <Skeleton className="h-24 w-full" />
-                    </div>
-                  ) : (() => {
-                    const categoryMap: Record<string, string> = {
-                      services: "service",
-                      billing: "billing",
-                      security: "security",
-                      updates: "system",
-                    };
-                    const filtered = notifications?.filter(
-                      n => n.category === categoryMap[category] || n.type === category
-                    ) || [];
-                    
-                    if (filtered.length === 0) {
-                      return (
-                        <div className="text-center py-12">
-                          <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">No {category} notifications</h3>
-                          <p className="text-muted-foreground">You're all caught up!</p>
-                        </div>
-                      );
-                    }
 
-                    return (
-                      <div className="divide-y divide-border">
-                        {filtered.map((notification) => {
-                          const Icon = getIconForType(notification.type);
-                          return (
-                            <div
-                              key={notification.id}
-                              className={`p-6 hover:bg-muted/50 transition-colors cursor-pointer ${
-                                !notification.is_read ? "bg-muted/30" : ""
-                              }`}
-                            >
-                              <div className="flex items-start gap-4">
-                                <div className={`w-12 h-12 rounded-lg ${getBgColor(notification.type)} flex items-center justify-center flex-shrink-0`}>
-                                  <Icon className={`h-6 w-6 ${getIconColor(notification.type)}`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between gap-4 mb-2">
-                                    <h4 className="font-semibold">{notification.title}</h4>
-                                    <p className="text-sm text-muted-foreground whitespace-nowrap">
-                                      {notification.created_at ? format(new Date(notification.created_at), 'MMM d, h:mm a') : 'N/A'}
-                                    </p>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground">{notification.message}</p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
+          {["services", "billing", "security", "updates"].map(category => (
+            <TabsContent key={category} value={category}>
+              <Card className="bg-card/50 backdrop-blur"><CardContent className="p-0">
+                {isLoading ? <div className="p-6"><Skeleton className="h-24 w-full" /></div> : renderNotificationList(filterByCategory(category))}
+              </CardContent></Card>
             </TabsContent>
           ))}
         </Tabs>
       </div>
+
+      {/* Clear All Confirmation */}
+      <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear Read Notifications</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all read notifications ({notifications?.filter(n => n.is_read).length || 0} notifications). Unread notifications will be kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearRead} className="bg-destructive text-destructive-foreground">
+              Clear Read
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
