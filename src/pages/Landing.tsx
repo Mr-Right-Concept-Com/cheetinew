@@ -293,7 +293,7 @@ const Landing = () => {
             <p className="text-xs text-muted-foreground">Subscribe to our newsletter for hosting tips and deals.</p>
             <div className="flex gap-2">
               <Input placeholder="your@email.com" className="h-9 w-56 text-xs" />
-              <Button size="sm" className="h-9">Subscribe</Button>
+              <Button size="sm" className="h-9" onClick={() => { const input = document.querySelector<HTMLInputElement>('footer input'); if (input?.value && input.value.includes('@')) { toast.success("Subscribed! You'll receive our latest updates."); input.value = ''; } else { toast.error("Please enter a valid email address"); } }}>Subscribe</Button>
             </div>
           </div>
           <div className="pt-6 border-t border-border text-center text-xs text-muted-foreground">
