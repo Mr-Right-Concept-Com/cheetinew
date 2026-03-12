@@ -9,6 +9,7 @@ import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { DomainSearch } from "@/components/DomainSearch";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 // Animated counter hook
 function useCounter(target: number, duration = 2000) {

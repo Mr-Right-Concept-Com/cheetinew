@@ -13,10 +13,10 @@ export const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { name: "Hosting", path: "/dashboard/hosting", icon: Server },
-    { name: "Cloud", path: "/dashboard/cloud", icon: Cloud },
-    { name: "Domains", path: "/dashboard/domains", icon: Globe },
-    { name: "Email", path: "/dashboard/email", icon: Mail },
+    { name: "Hosting", path: user ? "/dashboard/hosting" : "/pricing", icon: Server },
+    { name: "Cloud", path: user ? "/dashboard/cloud" : "/pricing", icon: Cloud },
+    { name: "Domains", path: user ? "/dashboard/domains" : "/pricing", icon: Globe },
+    { name: "Email", path: user ? "/dashboard/email" : "/pricing", icon: Mail },
     { name: "Pricing", path: "/pricing" },
   ];
 

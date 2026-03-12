@@ -292,9 +292,14 @@ const Checkout = () => {
                   <p className="text-muted-foreground">
                     Your services are being provisioned. You'll receive a confirmation email shortly.
                   </p>
-                  <Button onClick={() => navigate("/dashboard")} className="gap-2">
-                    Go to Dashboard
-                  </Button>
+                  <div className="flex gap-3 justify-center">
+                    <Button onClick={() => navigate("/dashboard/unbox")} className="gap-2">
+                      Go to Unbox
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}

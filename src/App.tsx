@@ -149,6 +149,12 @@ const App = () => (
             <Route path="/legal/terms" element={<Suspense fallback={<LoadingFallback />}><TermsOfService /></Suspense>} />
             <Route path="/legal/cookies" element={<Suspense fallback={<LoadingFallback />}><CookiePolicy /></Suspense>} />
 
+            {/* Company Pages */}
+            <Route path="/company/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
+            <Route path="/company/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
+            <Route path="/company/blog" element={<Suspense fallback={<LoadingFallback />}><Blog /></Suspense>} />
+            <Route path="/company/status" element={<Suspense fallback={<LoadingFallback />}><StatusPage /></Suspense>} />
+
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
             <Route path="/dashboard/hosting" element={<ProtectedRoute><DashboardLayout><Hosting /></DashboardLayout></ProtectedRoute>} />

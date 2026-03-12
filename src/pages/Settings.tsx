@@ -106,7 +106,11 @@ const Settings = () => {
     toast.success("API key copied to clipboard");
   };
 
-  const handleRevokeKey = (key: string) => {
+  const handleRevokeKey = async (key: string) => {
+    const found = apiKeys.find(k => k.key === key);
+    if (found?.id) {
+      await supabase.from("system_settings").delete().eq("id", found.id);
+    }
     setApiKeys(prev => prev.filter(k => k.key !== key));
     toast.success("API key revoked");
   };

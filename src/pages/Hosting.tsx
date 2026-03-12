@@ -23,6 +23,7 @@ import { FileManager } from "@/components/hosting/FileManager";
 import { CronManager } from "@/components/hosting/CronManager";
 import { ResourceCharts } from "@/components/hosting/ResourceCharts";
 
+// Sample access logs — connect a cPanel/Plesk panel for real log data
 const mockLogs = [
   { date: "2026-03-04 14:23:01", ip: "203.0.113.42", request: "GET /index.php HTTP/2", status: 200 },
   { date: "2026-03-04 14:22:58", ip: "198.51.100.7", request: "POST /wp-admin/admin-ajax.php HTTP/2", status: 200 },
