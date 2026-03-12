@@ -26,8 +26,18 @@ const Settings = () => {
   const [formData, setFormData] = useState({ full_name: "", company_name: "", phone: "" });
   const [passwordForm, setPasswordForm] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [apiKeys, setApiKeys] = useState<{ key: string; created: string }[]>([]);
+  const [apiKeys, setApiKeys] = useState<{ key: string; created: string; id?: string }[]>([]);
   const [newKeyVisible, setNewKeyVisible] = useState<string | null>(null);
+
+  // Load API keys from system_settings on mount
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("system_settings").select("*").like("key", `api_key_${user.id}_%`).then(({ data }) => {
+      if (data) {
+        setApiKeys(data.map(d => ({ key: (d.value as any)?.key || "****", created: d.created_at || "", id: d.id })));
+      }
+    });
+  }, [user]);
 
   useEffect(() => {
     if (profile) {
