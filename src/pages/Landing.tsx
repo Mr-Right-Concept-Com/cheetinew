@@ -275,7 +275,7 @@ const Landing = () => {
               <ul className="space-y-1.5 text-xs text-muted-foreground">
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Help Center</Link></li>
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Documentation</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Status</Link></li>
+                <li><Link to="/company/status" className="hover:text-primary transition-colors">Status</Link></li>
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Community</Link></li>
               </ul>
             </div>
