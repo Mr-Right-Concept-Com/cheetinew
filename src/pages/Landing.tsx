@@ -264,10 +264,10 @@ const Landing = () => {
             <div className="space-y-3">
               <h4 className="font-semibold text-sm">Company</h4>
               <ul className="space-y-1.5 text-xs text-muted-foreground">
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/company/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                <li><Link to="/company/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link to="/company/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/company/status" className="hover:text-primary transition-colors">Status</Link></li>
               </ul>
             </div>
             <div className="space-y-3">
