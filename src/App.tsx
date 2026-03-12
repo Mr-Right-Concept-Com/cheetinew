@@ -46,6 +46,12 @@ const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 
+// Company pages
+const About = lazy(() => import("./pages/company/About"));
+const Contact = lazy(() => import("./pages/company/Contact"));
+const Blog = lazy(() => import("./pages/company/Blog"));
+const StatusPage = lazy(() => import("./pages/company/Status"));
+
 // Admin routes
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const UsersManagement = lazy(() => import("./pages/admin/UsersManagement"));
@@ -142,6 +148,12 @@ const App = () => (
             <Route path="/legal/privacy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPolicy /></Suspense>} />
             <Route path="/legal/terms" element={<Suspense fallback={<LoadingFallback />}><TermsOfService /></Suspense>} />
             <Route path="/legal/cookies" element={<Suspense fallback={<LoadingFallback />}><CookiePolicy /></Suspense>} />
+
+            {/* Company Pages */}
+            <Route path="/company/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
+            <Route path="/company/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
+            <Route path="/company/blog" element={<Suspense fallback={<LoadingFallback />}><Blog /></Suspense>} />
+            <Route path="/company/status" element={<Suspense fallback={<LoadingFallback />}><StatusPage /></Suspense>} />
 
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />

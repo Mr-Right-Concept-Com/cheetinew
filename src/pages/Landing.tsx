@@ -9,6 +9,7 @@ import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { DomainSearch } from "@/components/DomainSearch";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 // Animated counter hook
 function useCounter(target: number, duration = 2000) {
@@ -264,10 +265,10 @@ const Landing = () => {
             <div className="space-y-3">
               <h4 className="font-semibold text-sm">Company</h4>
               <ul className="space-y-1.5 text-xs text-muted-foreground">
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/company/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                <li><Link to="/company/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+                <li><Link to="/company/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                <li><Link to="/company/status" className="hover:text-primary transition-colors">Status</Link></li>
               </ul>
             </div>
             <div className="space-y-3">
@@ -275,7 +276,7 @@ const Landing = () => {
               <ul className="space-y-1.5 text-xs text-muted-foreground">
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Help Center</Link></li>
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Documentation</Link></li>
-                <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Status</Link></li>
+                <li><Link to="/company/status" className="hover:text-primary transition-colors">Status</Link></li>
                 <li><Link to="/dashboard/support" className="hover:text-primary transition-colors">Community</Link></li>
               </ul>
             </div>
@@ -293,7 +294,7 @@ const Landing = () => {
             <p className="text-xs text-muted-foreground">Subscribe to our newsletter for hosting tips and deals.</p>
             <div className="flex gap-2">
               <Input placeholder="your@email.com" className="h-9 w-56 text-xs" />
-              <Button size="sm" className="h-9">Subscribe</Button>
+              <Button size="sm" className="h-9" onClick={() => { const input = document.querySelector<HTMLInputElement>('footer input'); if (input?.value && input.value.includes('@')) { toast.success("Subscribed! You'll receive our latest updates."); input.value = ''; } else { toast.error("Please enter a valid email address"); } }}>Subscribe</Button>
             </div>
           </div>
           <div className="pt-6 border-t border-border text-center text-xs text-muted-foreground">

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   ShoppingCart,
@@ -58,12 +59,44 @@ const Checkout = () => {
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsProcessing(false);
-    clearCart();
-    setStep("confirmation");
-    toast.success("Payment successful! Your services are being provisioned.");
+    try {
+      // Create subscription records for each item
+      for (const item of items) {
+        await supabase.from("subscriptions").insert({
+          user_id: user!.id,
+          plan_name: item.name,
+          plan_type: item.type,
+          amount: item.price * item.quantity,
+          interval: item.period === "yearly" ? "yearly" : "monthly",
+          status: "active",
+          current_period_start: new Date().toISOString(),
+          current_period_end: new Date(Date.now() + (item.period === "yearly" ? 365 : 30) * 86400000).toISOString(),
+        });
+
+        // Call provisioning edge functions based on type
+        if (item.type === "hosting") {
+          await supabase.functions.invoke("provision-hosting", {
+            body: { name: item.name, plan: item.name, userId: user!.id },
+          });
+        } else if (item.type === "domain") {
+          await supabase.functions.invoke("provision-domain", {
+            body: { domain: item.name, userId: user!.id },
+          });
+        } else if (item.type === "cloud" || (item.type as string) === "vps") {
+          await supabase.functions.invoke("provision-vps", {
+            body: { name: item.name, userId: user!.id },
+          });
+        }
+      }
+
+      clearCart();
+      setStep("confirmation");
+      toast.success("Payment successful! Your services are being provisioned.");
+    } catch (error) {
+      toast.error("Payment processing failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const steps: { key: Step; label: string; number: number }[] = [
@@ -259,9 +292,14 @@ const Checkout = () => {
                   <p className="text-muted-foreground">
                     Your services are being provisioned. You'll receive a confirmation email shortly.
                   </p>
-                  <Button onClick={() => navigate("/dashboard")} className="gap-2">
-                    Go to Dashboard
-                  </Button>
+                  <div className="flex gap-3 justify-center">
+                    <Button onClick={() => navigate("/dashboard/unbox")} className="gap-2">
+                      Go to Unbox
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                      Dashboard
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}

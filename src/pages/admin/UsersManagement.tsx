@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 const UsersManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -182,15 +183,20 @@ const UsersManagement = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => toast.info(`User details: ${user.name} (${user.user_id})`)}>
                               <Shield className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { window.open(`mailto:${user.user_id}`, '_blank'); toast.info("Opening email client..."); }}>
                               <Mail className="mr-2 h-4 w-4" />
                               Send Email
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem onClick={async () => {
+                              if (user.role === "admin") { toast.error("Cannot suspend an admin"); return; }
+                              const { error } = await supabase.from("user_roles").update({ role: "user" as any }).eq("user_id", user.user_id);
+                              if (error) toast.error(error.message);
+                              else { toast.success(`${user.name} has been suspended`); refetch(); }
+                            }} className="text-destructive">
                               <Ban className="mr-2 h-4 w-4" />
                               Suspend User
                             </DropdownMenuItem>

@@ -26,8 +26,18 @@ const Settings = () => {
   const [formData, setFormData] = useState({ full_name: "", company_name: "", phone: "" });
   const [passwordForm, setPasswordForm] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [apiKeys, setApiKeys] = useState<{ key: string; created: string }[]>([]);
+  const [apiKeys, setApiKeys] = useState<{ key: string; created: string; id?: string }[]>([]);
   const [newKeyVisible, setNewKeyVisible] = useState<string | null>(null);
+
+  // Load API keys from system_settings on mount
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("system_settings").select("*").like("key", `api_key_${user.id}_%`).then(({ data }) => {
+      if (data) {
+        setApiKeys(data.map(d => ({ key: (d.value as any)?.key || "****", created: d.created_at || "", id: d.id })));
+      }
+    });
+  }, [user]);
 
   useEffect(() => {
     if (profile) {
@@ -78,9 +88,15 @@ const Settings = () => {
     }
   };
 
-  const handleGenerateKey = () => {
+  const handleGenerateKey = async () => {
     const key = `ck_live_${Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2, "0")).join("")}`;
-    setApiKeys(prev => [...prev, { key, created: new Date().toISOString() }]);
+    const settingKey = `api_key_${user!.id}_${Date.now()}`;
+    const { data, error } = await supabase.from("system_settings").insert({
+      key: settingKey, value: { key }, category: "api_keys", description: "User API key",
+      is_public: false, updated_by: user!.id,
+    }).select().single();
+    if (error) { toast.error("Failed to generate key"); return; }
+    setApiKeys(prev => [...prev, { key, created: new Date().toISOString(), id: data.id }]);
     setNewKeyVisible(key);
     toast.success("API key generated. Copy it now — it won't be shown again.");
   };
@@ -90,7 +106,11 @@ const Settings = () => {
     toast.success("API key copied to clipboard");
   };
 
-  const handleRevokeKey = (key: string) => {
+  const handleRevokeKey = async (key: string) => {
+    const found = apiKeys.find(k => k.key === key);
+    if (found?.id) {
+      await supabase.from("system_settings").delete().eq("id", found.id);
+    }
     setApiKeys(prev => prev.filter(k => k.key !== key));
     toast.success("API key revoked");
   };
