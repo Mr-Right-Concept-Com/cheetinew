@@ -88,9 +88,15 @@ const Settings = () => {
     }
   };
 
-  const handleGenerateKey = () => {
+  const handleGenerateKey = async () => {
     const key = `ck_live_${Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2, "0")).join("")}`;
-    setApiKeys(prev => [...prev, { key, created: new Date().toISOString() }]);
+    const settingKey = `api_key_${user!.id}_${Date.now()}`;
+    const { data, error } = await supabase.from("system_settings").insert({
+      key: settingKey, value: { key }, category: "api_keys", description: "User API key",
+      is_public: false, updated_by: user!.id,
+    }).select().single();
+    if (error) { toast.error("Failed to generate key"); return; }
+    setApiKeys(prev => [...prev, { key, created: new Date().toISOString(), id: data.id }]);
     setNewKeyVisible(key);
     toast.success("API key generated. Copy it now — it won't be shown again.");
   };
