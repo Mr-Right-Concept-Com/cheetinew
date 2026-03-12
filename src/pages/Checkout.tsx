@@ -82,7 +82,7 @@ const Checkout = () => {
           await supabase.functions.invoke("provision-domain", {
             body: { domain: item.name, userId: user!.id },
           });
-        } else if (item.type === "cloud" || item.type === "vps") {
+        } else if (item.type === "cloud" || (item.type as string) === "vps") {
           await supabase.functions.invoke("provision-vps", {
             body: { name: item.name, userId: user!.id },
           });
