@@ -49,6 +49,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 const AdminDashboard = () => {
+  usePageMeta("Admin Dashboard", "Real-time business intelligence and system metrics");
+  const queryClient = useQueryClient();
   const { data: metrics, isLoading: metricsLoading } = useAdminMetrics();
   const { data: revenueByMonth } = useRevenueByMonth(12);
   const { data: userGrowth } = useUserGrowth(30);
