@@ -1,127 +1,167 @@
+# CheetiHost Batch 2-5 Implementation Plan
 
+## Audit Findings
 
-# Comprehensive QA Audit & Fix Plan
+After reviewing all pages, here are the critical gaps vs Hostinger/Spaceship/Namecheap:
 
-## Audit Findings Summary
+**Hosting page**: No tabbed management, no one-click apps, no file manager, no SSH credentials, no PHP selector, no resource charts, no cron jobs. Buttons just show toasts.
 
-After reviewing every page, component, sidebar, tab, button, and dropdown across all three dashboards, here are the remaining issues categorized by severity:
+**Domains page**: No DNS record creation dialog (Add Record button has no onClick), no bulk transfer, no nameserver config form, no WHOIS toggle that persists, domain actions are toast-only.
 
----
+**Billing page**: "Add Payment Method" button has no form, "Change Plan" shows toast only, no invoice PDF, no promo codes, no transaction history filtering.
 
-## CRITICAL: Dead Buttons / No onClick Handlers
+**Email page**: Inbox tab just lists mailboxes again, no compose, forwarding tab is empty placeholder, spam tab has non-functional toggle. Dropdown items (Settings, Forwarding, Spam Rules, Delete) have no onClick handlers.
 
-### Admin Dashboard (8 dead actions)
-1. **HostingManagement.tsx** (lines 179-181): "View Details", "Restart Server", "Suspend" dropdown items have no `onClick` handlers
-2. **HostingManagement.tsx** (line 57-59): "Add Hosting" top button has no `onClick`
-3. **DomainsManagement.tsx** (lines 185-188): "Manage DNS", "Renew SSL", "Renew Domain" dropdown items have no `onClick`
-4. **DomainsManagement.tsx** (line 231): "Renew" button on expiring domains alert has no `onClick`
-5. **EmailManagement.tsx** (lines 169-171): "Security Settings", "Manage Storage", "View Activity" dropdown items have no `onClick`
-6. **EmailManagement.tsx** (line 50-53): "Create Email" top button has no `onClick`
-7. **CloudManagement.tsx** (lines 167-169): "View Metrics", "Manage Storage", "Create Snapshot" dropdown items have no `onClick`
-8. **CloudManagement.tsx** (line 50-53): "Create Resource" top button has no `onClick`
-9. **BillingManagement.tsx** (lines 222-223): "Download Invoice", "Process Refund" dropdown items have no `onClick`
-10. **BillingManagement.tsx** (line 84-87): "Export Report" button has no `onClick`
-11. **AdminDashboard.tsx** (line 78-80): "Refresh" button has no `onClick`
+**Security page**: No WAF toggle, no IP blocklist, 2FA button non-functional, no security scan, "View Report" button non-functional.
 
-### Reseller Dashboard (Mock Data Issues)
-12. **ResellerClients.tsx**: Uses `demoClients` hardcoded array (line 17-23) instead of real `reseller_clients` Supabase table
-13. **ResellerProducts.tsx**: Uses `defaultProducts` hardcoded array (line 15-24) instead of real `reseller_products` Supabase table — state operations are local only
-14. **ResellerBilling.tsx**: Entire page uses hardcoded mock data (lines 11-41: `revenueData`, `invoices`, `transactions`, `revenueBreakdown`) — not wired to Supabase at all
-15. **ResellerPayouts.tsx**: Uses hardcoded `payoutHistory` and `paymentMethods` (lines 14-26) — not wired to `reseller_payouts` table
-16. **ResellerDashboard.tsx** (line 51): `topProducts` uses `Math.random()` for sold count — mock data
+**Support page**: "Start Chat" button non-functional, ticket "View" button does nothing, knowledge base articles non-clickable, video tutorials are placeholder boxes.
 
-### User Dashboard
-17. **Hosting.tsx**: "Add Hosting" button on hosting list lacks validation (empty name/plan submits)
-18. **Checkout.tsx**: Billing form fields lack Zod validation
-19. **Login.tsx / Signup.tsx**: Basic string checks only, no Zod schema validation, no email format check
+**Website Builder**: Template category tabs only show "all" content (other tabs render nothing), "Preview"/"Use" buttons non-functional, "Create from Scratch" non-functional, "Try Cheeti AI" non-functional.
+
+**Notifications**: Category tabs work but mapping may be incomplete. Clear All deletes ALL notifications (should only clear read ones with confirmation).
+
+**Settings page**: Missing API keys section, missing connected services, missing delete account.
+
+**Dashboard**: Missing onboarding wizard for new users with no data.
 
 ---
 
-## MEDIUM: Missing Form Validation (No Zod)
+## Implementation Plan (Batches 2-5)
 
-All forms currently use basic `if (!field) return` checks. Industry standard requires Zod schema validation with inline error messages:
+### BATCH 2: Hosting + Domains Deep Management
 
-1. **Login form** — needs email format validation, password min length
-2. **Signup form** — needs email format, password strength indicator, name length limits
-3. **Checkout billing form** — needs address, zip, country validation
-4. **Create Hosting dialog** — needs name/plan/region validation
-5. **Create Domain dialog** — needs domain format validation
-6. **Create Email dialog** — needs email format validation
-7. **Support ticket form** — needs subject/description length validation
-8. **Settings profile form** — needs phone format, name length validation
-9. **Settings password form** — needs strength validation
-10. **Admin > Add Hosting / Create Email / Create Resource** top buttons — need dialogs with validation
+**Hosting.tsx (~600 lines rewrite):**
 
----
+- Add tabbed interface per hosting account: Overview | Apps | Files | Databases | SSH/SFTP | PHP | Cron Jobs | Logs
+- **One-Click Apps tab**: Grid of app cards (WordPress, Laravel, Node.js, Ghost, Joomla, Drupal) with "Install" buttons that call a toast + create audit log
+- **File Manager tab**: Mock directory tree UI with breadcrumb, file list table (name, size, date, permissions), upload/download/delete buttons
+- **SSH/SFTP tab**: Credentials display card (host, port, username) with copy-to-clipboard buttons
+- **PHP Version tab**: Dropdown selector (7.4, 8.0, 8.1, 8.2, 8.3) with "Apply" button
+- **Resource Charts**: CPU, RAM, Disk, Bandwidth area charts using Recharts with mock time-series data
+- **Cron Jobs tab**: Table of cron jobs with schedule/command columns, add/delete functionality
+- **Access Logs tab**: Scrollable log viewer with date/IP/request/status columns
+- Wire dropdown buttons to real edge function calls or meaningful actions
 
-## LOW: Missing Meta / SEO
+**Domains.tsx (~650 lines rewrite):**
 
-- No `<title>` or `<meta description>` per page — only global title in `index.html`
-- Company pages (About, Contact, Blog, Status) lack proper meta tags
+- **Add DNS Record dialog**: Type selector (A, AAAA, CNAME, MX, TXT, NS, SRV), Name, Value, TTL, Priority inputs with validation, calls Supabase insert on `dns_records`
+- **Bulk Transfer tab**: Textarea for multiple domains with auth codes, process button
+- **Nameserver config form**: Editable ns1-ns4 inputs per domain, Save button updates `domains.nameservers`
+- **WHOIS privacy toggle**: Switch component that calls Supabase update on `domains.privacy_enabled`
+- **Auto-renew toggle**: Same pattern for `domains.auto_renew`
+- **Domain lock toggle**: Confirmation dialog, updates `domains.transfer_lock`
+- **Renew button**: Dialog with renewal period selector (1/2/3/5 years)
 
----
+### BATCH 3: Billing + Email + Security
 
-## Implementation Plan
+**Billing.tsx enhancements:**
 
-### Step 1: Wire All Admin Dashboard Dead Buttons (6 files)
+- **Add Payment Method dialog**: Form with card type, last four, expiry month/year, brand. Inserts into `payment_methods` table
+- **Change Plan dialog**: Shows current plan vs available plans from `plans` table with feature comparison, confirm button updates subscription
+- **Invoice PDF**: Generate printable invoice view (window.print() approach) or HTML-based download
+- **Promo code input**: Text field with "Apply" button (validates against system_settings or a codes table)
+- **Transaction history tab**: Pull from `transactions` table with date range filter and status filter
 
-**HostingManagement.tsx**: Add `onClick` handlers with `toast.info()` for View Details, mutation for Suspend (update `status` to `suspended`), and Restart (update `status` to `active`). Wire "Add Hosting" to open create dialog.
+**Email.tsx enhancements:**
 
-**DomainsManagement.tsx**: Wire "Manage DNS" to `toast.info` with domain details, "Renew SSL" to invoke `manage-ssl` edge function, "Renew Domain" to extend expiry. Wire renewal alert button.
+- **Inbox tab**: Demo inbox UI with mock messages (sender, subject, snippet, date) with info banner "Full webmail via your mail provider"
+- **Compose dialog**: To, CC, Subject, Body fields with Send button
+- **Forwarding tab**: Table showing forwarding rules per mailbox with add/edit/delete. Updates `email_accounts.forwarding_address` and `forwarding_enabled`
+- **Autoresponder tab**: Enable toggle, subject, message, date range fields. Updates `email_accounts.autoresponder_*` fields
+- **Spam filter tab**: Radio group (Low/Medium/High/Custom) per mailbox. Updates `email_accounts.spam_filter_level`
+- Wire all dropdown menu items to real actions
 
-**EmailManagement.tsx**: Wire dropdown items to `toast.info` detail views. Wire "Create Email" button.
+**Security.tsx enhancements:**
 
-**CloudManagement.tsx**: Wire dropdown items. Wire "Create Resource" button.
+- **WAF toggle**: Switch that persists to `system_settings` key "waf_enabled"
+- **Security scan button**: Creates audit_log entry with action "security.scan", shows mock scan results
+- **IP Blocklist tab**: Add IP input + list of blocked IPs stored in `system_settings` key "ip_blocklist"
+- **2FA setup**: Multi-step dialog (show QR code placeholder, verify code input, enable)
+- **Login activity tab**: Enhanced view from `audit_logs` filtered by action "auth.*"
+- Wire "View Report" and "Renew" SSL buttons
 
-**BillingManagement.tsx**: Wire "Download Invoice" to generate printable view, "Process Refund" to update transaction status. Wire "Export Report" to CSV download.
+### BATCH 4: Support + Notifications + Website Builder
 
-**AdminDashboard.tsx**: Wire "Refresh" button to `queryClient.invalidateQueries()`.
+**Support.tsx enhancements:**
 
-### Step 2: Wire Reseller Dashboard to Real Supabase Data (4 files)
+- **"Start Chat" button**: Opens CheetiAI component in expanded mode (or scrolls to embedded chat)
+- **Ticket "View" button**: Expands ticket into detail view showing `ticket_messages` thread with reply form
+- **Knowledge base articles**: Clickable, opens detail view with article content
+- **Video tutorials**: "Watch" button opens modal with embedded video placeholder and description
 
-**ResellerClients.tsx**: Replace `demoClients` with `useQuery` fetching from `reseller_clients` table. Wire add/delete/toggle to real mutations.
+**Notifications.tsx fixes:**
 
-**ResellerProducts.tsx**: Replace `defaultProducts` with `useResellerProducts()` hook. Wire add/edit/toggle to real mutations via `reseller_products` table.
+- Fix category mapping to match actual `notifications.category` values in DB
+- "Clear All" should only delete read notifications with confirmation dialog
+- Add notification preferences section (email/push toggles per category stored in system_settings)
 
-**ResellerBilling.tsx**: Replace all hardcoded data with queries to `reseller_commissions`, `transactions`, and `invoices` tables filtered by reseller user.
+**WebsiteBuilder.tsx enhancements:**
 
-**ResellerPayouts.tsx**: Replace `payoutHistory` with `useQuery` from `reseller_payouts`. Wire payout request to real `INSERT` mutation.
+- Wire category tab filtering (Business/Portfolio/Shop/Blog/Marketing tabs filter template list)
+- "Preview" button: Opens dialog with full-size template preview
+- "Use Template" button: Creates hosting account pre-configured with template name
+- "Create from Scratch": Opens dialog asking for site name + domain, creates hosting account
+- "Try Cheeti AI": Opens input prompt "Describe your website", generates template recommendation
+- Add "My Sites" section showing user's builder sites from hosting_accounts
 
-### Step 3: Add Zod Validation to All Forms (8 files)
+### BATCH 5: Onboarding + Command Palette + Global Polish
 
-Create shared validation schemas in `src/lib/validations.ts`:
-```typescript
-// loginSchema, signupSchema, billingSchema, hostingSchema, 
-// domainSchema, emailSchema, ticketSchema, profileSchema
-```
+**OnboardingWizard component:**
 
-Update these files to use Zod + react-hook-form:
-- `Login.tsx` — email format, password min 8 chars
-- `Signup.tsx` — email, password strength, name 2-50 chars, terms required
-- `Checkout.tsx` — billing address fields required, zip format
-- `Hosting.tsx` — create dialog: name required 3-50 chars, plan required
-- `Domains.tsx` — domain name format validation
-- `Email.tsx` — email address format, quota range
-- `Support.tsx` — subject 5-100 chars, description 10-2000 chars
-- `Settings.tsx` — profile name 2-50 chars, phone format, password min 8
+- Shows for users with 0 hosting accounts + 0 domains + 0 cloud instances
+- Step 1: "What do you want to do?" (Build website / Register domain / Set up email / Deploy from GitHub)
+- Step 2: Redirects to relevant page
+- "Skip" + "Don't show again" (localStorage flag)
+- Render in Dashboard.tsx when conditions met
 
-### Step 4: Add Page-Level Meta Tags (1 new hook + all pages)
+**CommandPalette.tsx enhancement:**
 
-Create `src/hooks/usePageMeta.ts` — sets `document.title` and meta description per page.
+- Add categories: Navigation, Services, Actions
+- Add recent pages section
+- Add domain/hosting account search results
 
-Apply to all pages: Dashboard ("Dashboard | CheetiHost"), Hosting ("Hosting Management | CheetiHost"), etc.
+**Global fixes:**
 
----
+- Copyright year to 2026 in footer
+- Wire remaining non-functional buttons across all pages
+- Add About Us, Contact, Careers, Blog, Status pages as "Coming Soon" with real routes
 
-## Files to Create (1)
-- `src/lib/validations.ts` — Zod schemas for all forms
+### File Changes Summary
 
-## Files to Modify (18)
-**Admin (6):** HostingManagement, DomainsManagement, EmailManagement, CloudManagement, BillingManagement, AdminDashboard
-**Reseller (4):** ResellerClients, ResellerProducts, ResellerBilling, ResellerPayouts
-**User (6):** Login, Signup, Checkout, Hosting (create dialog), Settings, Support
-**Global (2):** index.html (base meta), all pages (document.title)
+**Modified files (14):**
 
-## No Database Changes Required
-All tables and RLS policies already exist for the reseller data.
+- `src/pages/Hosting.tsx` - Full tabbed management rebuild
+- `src/pages/Domains.tsx` - DNS dialog, bulk transfer, nameserver config
+- `src/pages/Billing.tsx` - Payment form, plan change dialog, invoice PDF
+- `src/pages/Email.tsx` - Inbox demo, compose, forwarding, autoresponder, spam
+- `src/pages/Security.tsx` - WAF, IP blocklist, 2FA, scan, login activity
+- `src/pages/Support.tsx` - Chat integration, ticket threading, KB articles
+- `src/pages/Notifications.tsx` - Category fix, clear all fix, preferences
+- `src/pages/WebsiteBuilder.tsx` - Template filtering, preview, site creation
+- `src/pages/Dashboard.tsx` - Onboarding wizard integration
+- `src/components/CommandPalette.tsx` - Categories, search enhancement
+- `src/pages/Landing.tsx` - Footer copyright fix
+- `src/App.tsx` - Add company page routes
 
+**New files (8):**
+
+- `src/components/OnboardingWizard.tsx`
+- `src/components/hosting/OneClickApps.tsx`
+- `src/components/hosting/FileManager.tsx`
+- `src/components/hosting/CronManager.tsx`
+- `src/components/hosting/ResourceCharts.tsx`
+- `src/components/billing/AddPaymentMethodDialog.tsx`
+- `src/components/billing/ChangePlanDialog.tsx`
+- `src/components/email/ComposeDialog.tsx`
+
+### Execution Order
+
+1. **Batch 2**: Hosting tabs + Domains DNS/transfer (highest impact on competitor parity)
+2. **Batch 3**: Billing forms + Email webmail + Security WAF
+3. **Batch 4**: Support threading + Notifications fix + Builder
+4. **Batch 5**: Onboarding + Command palette + polish
+  &nbsp;
+5. Also Add The spaceship  Unbox feature  ( Bring it all together
+6. Unbox™ automatically activates as part of your purchase setup, swiftly getting your products ready to launch and manage.)
+
+&nbsp;

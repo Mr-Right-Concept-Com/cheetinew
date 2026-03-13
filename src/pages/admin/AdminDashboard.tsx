@@ -45,8 +45,12 @@ import {
   useRecentActivity,
   useServerStatus 
 } from "@/hooks/useAdminMetrics";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const AdminDashboard = () => {
+  usePageMeta("Admin Dashboard", "Real-time business intelligence and system metrics");
+  const queryClient = useQueryClient();
   const { data: metrics, isLoading: metricsLoading } = useAdminMetrics();
   const { data: revenueByMonth } = useRevenueByMonth(12);
   const { data: userGrowth } = useUserGrowth(30);
@@ -75,7 +79,7 @@ const AdminDashboard = () => {
           <p className="text-sm md:text-base text-muted-foreground">Real-time business intelligence and system metrics</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => queryClient.invalidateQueries()}>
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
