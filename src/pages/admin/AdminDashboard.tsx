@@ -45,6 +45,8 @@ import {
   useRecentActivity,
   useServerStatus 
 } from "@/hooks/useAdminMetrics";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const AdminDashboard = () => {
   const { data: metrics, isLoading: metricsLoading } = useAdminMetrics();
