@@ -11,6 +11,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { billingSchema } from "@/lib/validations";
 import {
   ShoppingCart,
   CreditCard,
@@ -30,6 +31,7 @@ const Checkout = () => {
   const [step, setStep] = useState<Step>("review");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [billingErrors, setBillingErrors] = useState<Record<string, string>>({});
 
   const [billingInfo, setBillingInfo] = useState({
     fullName: "",
@@ -39,6 +41,20 @@ const Checkout = () => {
     country: "",
     zip: "",
   });
+
+  const handleBillingContinue = () => {
+    const result = billingSchema.safeParse(billingInfo);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) errors[issue.path[0] as string] = issue.message;
+      });
+      setBillingErrors(errors);
+      return;
+    }
+    setBillingErrors({});
+    setStep("payment");
+  };
 
   if (itemCount === 0 && step !== "confirmation") {
     return (
