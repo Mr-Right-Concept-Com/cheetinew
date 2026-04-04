@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const serviceRoutes: Record<string, string> = {
   "Web Hosting": "/dashboard/hosting",
