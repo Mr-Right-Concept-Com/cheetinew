@@ -20,6 +20,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const knowledgeBase = [
   {
@@ -55,6 +56,7 @@ const videoTutorials = [
 ];
 
 const Support = () => {
+  usePageMeta("Support", "Get help via tickets, knowledge base, and AI chat");
   const { data: tickets, isLoading } = useSupportTickets();
   const createTicket = useCreateTicket();
   const closeTicket = useCloseTicket();

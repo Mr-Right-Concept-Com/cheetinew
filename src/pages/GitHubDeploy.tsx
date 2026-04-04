@@ -51,7 +51,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-
+import { usePageMeta } from "@/hooks/usePageMeta";
 const statusConfig: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
   pending: { icon: <Clock className="h-3 w-3" />, color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", label: "Pending" },
   building: { icon: <Loader2 className="h-3 w-3 animate-spin" />, color: "bg-blue-500/10 text-blue-500 border-blue-500/20", label: "Building" },
@@ -60,6 +60,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; label
 };
 
 export function GitHubDeploy() {
+  usePageMeta("GitHub Deploy", "Connect GitHub repos and deploy automatically");
   const { user } = useAuth();
   const { data: connection, isLoading: connLoading } = useGitHubConnection();
   const { data: repos, isLoading: reposLoading, refetch: refetchRepos } = useGitHubRepos(!!connection);

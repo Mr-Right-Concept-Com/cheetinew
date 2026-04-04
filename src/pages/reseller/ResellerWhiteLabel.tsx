@@ -44,7 +44,7 @@ const ResellerWhiteLabel = () => {
           <p className="text-muted-foreground">Customize your brand experience for your clients</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => toast({ title: "Preview", description: `Preview your white-label portal at ${settings.customDomain}` })}>
             <Eye className="h-4 w-4" />
             Preview
           </Button>

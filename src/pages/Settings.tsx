@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 const Settings = () => {
+  usePageMeta("Settings", "Manage your profile, security, notifications, and API keys");
   const { user, profile, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);

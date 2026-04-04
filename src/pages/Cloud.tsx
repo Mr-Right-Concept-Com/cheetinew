@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ import { useCloudInstances, useCreateCloudInstance, useInstanceActions } from "@
 import { useToast } from "@/hooks/use-toast";
 
 const Cloud = () => {
+  usePageMeta("Cloud", "Deploy and manage cloud VPS instances with full root access");
   const { toast } = useToast();
   const { data: instances, isLoading, error } = useCloudInstances();
   const createInstance = useCreateCloudInstance();

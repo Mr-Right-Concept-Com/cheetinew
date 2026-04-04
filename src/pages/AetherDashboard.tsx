@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ import { AIDevOpsAgent } from "@/components/dashboard/AIDevOpsAgent";
 import { BladePanel } from "@/components/ui/blade-panel";
 
 const AetherDashboard = () => {
+  usePageMeta("Aether", "Unified command center for infrastructure management");
   const [activeTab, setActiveTab] = useState("overview");
   const [showMigrationWizard, setShowMigrationWizard] = useState(false);
   const [showAIAgent, setShowAIAgent] = useState(false);

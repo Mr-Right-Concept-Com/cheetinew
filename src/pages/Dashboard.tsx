@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
+  usePageMeta("Dashboard", "Manage your hosting, cloud, domains, and more from your CheetiHost dashboard");
   const { profile } = useAuth();
   const { data: hostingAccounts, isLoading: hostingLoading } = useHostingAccounts();
   const { data: hostingStats } = useHostingStats();

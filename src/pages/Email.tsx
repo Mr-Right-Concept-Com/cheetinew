@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import { useEmailAccounts, useCreateEmailAccount, useUpdateEmailAccount, useDele
 import { ComposeDialog } from "@/components/email/ComposeDialog";
 
 const Email = () => {
+  usePageMeta("Email", "Create and manage professional email accounts with forwarding and spam filtering");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("mailboxes");
   const [newEmail, setNewEmail] = useState({ username: "", domain: "", password: "", quota: 10 });

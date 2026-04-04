@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const serviceRoutes: Record<string, string> = {
   "Web Hosting": "/dashboard/hosting",
@@ -23,6 +24,7 @@ const serviceRoutes: Record<string, string> = {
 const Unbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  usePageMeta("Unbox", "Activate and manage your purchased services");
   const [search, setSearch] = useState("");
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
 

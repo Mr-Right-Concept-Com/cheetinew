@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { useDomains, useCreateDomain, useDomainStats, useDNSRecords, useCreateDN
 import { format } from "date-fns";
 
 const Domains = () => {
+  usePageMeta("Domains", "Register, transfer, and manage your domain names with DNS and SSL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDNSDialogOpen, setIsDNSDialogOpen] = useState(false);

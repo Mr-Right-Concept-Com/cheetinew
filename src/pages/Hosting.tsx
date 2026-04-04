@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const mockLogs = [
 ];
 
 const Hosting = () => {
+  usePageMeta("Hosting", "Manage your web hosting accounts, apps, files, and server resources");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newSite, setNewSite] = useState({ name: "", plan: "", region: "" });
   const [selectedSite, setSelectedSite] = useState<HostingAccount | null>(null);
@@ -46,7 +48,8 @@ const Hosting = () => {
   const createHosting = useCreateHostingAccount();
 
   const handleCreateSite = async () => {
-    if (!newSite.name || !newSite.plan) return;
+    if (!newSite.name || newSite.name.length < 3) { toast.error("Site name must be at least 3 characters"); return; }
+    if (!newSite.plan) { toast.error("Please select a plan"); return; }
     await createHosting.mutateAsync({ name: newSite.name, plan: newSite.plan, region: newSite.region || "us-east-1" });
     setNewSite({ name: "", plan: "", region: "" });
     setIsDialogOpen(false);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ const templates = [
 ];
 
 const WebsiteBuilder = () => {
+  usePageMeta("Website Builder", "Build your website with templates, AI, or from scratch");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewTemplate, setPreviewTemplate] = useState<typeof templates[0] | null>(null);
   const [createSiteOpen, setCreateSiteOpen] = useState(false);
