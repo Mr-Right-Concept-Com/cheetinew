@@ -56,6 +56,7 @@ const videoTutorials = [
 ];
 
 const Support = () => {
+  usePageMeta("Support", "Get help via tickets, knowledge base, and AI chat");
   const { data: tickets, isLoading } = useSupportTickets();
   const createTicket = useCreateTicket();
   const closeTicket = useCloseTicket();

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { LucideIcon } from "lucide-react";
 
 const Notifications = () => {
+  usePageMeta("Notifications", "View and manage your alerts and notifications");
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();

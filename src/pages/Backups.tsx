@@ -34,6 +34,7 @@ import { toast as sonnerToast } from "sonner";
 import { format } from "date-fns";
 
 const Backups = () => {
+  usePageMeta("Backups", "Create, manage, and restore backups for your hosting and cloud services");
   const { toast } = useToast();
   const [autoBackup, setAutoBackup] = useState(true);
   const [backupFrequency, setBackupFrequency] = useState("daily");

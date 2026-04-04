@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 const Settings = () => {
+  usePageMeta("Settings", "Manage your profile, security, notifications, and API keys");
   const { user, profile, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);

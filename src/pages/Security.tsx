@@ -17,8 +17,10 @@ import { useDomains } from "@/hooks/useDomains";
 import { useSystemSetting, useUpsertSystemSetting } from "@/hooks/useSystemSettings";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const Security = () => {
+  usePageMeta("Security Center", "Manage SSL certificates, WAF, IP blocklist, and 2FA security");
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: domains, isLoading: domainsLoading } = useDomains();

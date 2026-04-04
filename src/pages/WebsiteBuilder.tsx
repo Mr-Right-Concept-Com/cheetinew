@@ -31,6 +31,7 @@ const templates = [
 ];
 
 const WebsiteBuilder = () => {
+  usePageMeta("Website Builder", "Build your website with templates, AI, or from scratch");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewTemplate, setPreviewTemplate] = useState<typeof templates[0] | null>(null);
   const [createSiteOpen, setCreateSiteOpen] = useState(false);

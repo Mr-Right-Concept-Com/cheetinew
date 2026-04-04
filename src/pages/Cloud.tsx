@@ -46,6 +46,7 @@ import { useCloudInstances, useCreateCloudInstance, useInstanceActions } from "@
 import { useToast } from "@/hooks/use-toast";
 
 const Cloud = () => {
+  usePageMeta("Cloud", "Deploy and manage cloud VPS instances with full root access");
   const { toast } = useToast();
   const { data: instances, isLoading, error } = useCloudInstances();
   const createInstance = useCreateCloudInstance();

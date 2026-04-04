@@ -19,6 +19,7 @@ import { AddPaymentMethodDialog } from "@/components/billing/AddPaymentMethodDia
 import { ChangePlanDialog } from "@/components/billing/ChangePlanDialog";
 
 const Billing = () => {
+  usePageMeta("Billing", "Manage subscriptions, invoices, and payment methods");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelSubId, setCancelSubId] = useState<string | null>(null);
   const [addPaymentOpen, setAddPaymentOpen] = useState(false);
