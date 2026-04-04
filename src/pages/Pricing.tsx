@@ -21,6 +21,7 @@ import {
 type BillingPeriod = "monthly" | "yearly" | "biennial";
 
 const Pricing = () => {
+  usePageMeta("Pricing", "Compare web hosting, cloud VPS, and domain plans — flexible billing periods");
   const { user } = useAuth();
   const dashboardLink = user ? "/dashboard" : "/auth/signup";
   const [productTab, setProductTab] = useState("hosting");
