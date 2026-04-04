@@ -48,7 +48,8 @@ const Hosting = () => {
   const createHosting = useCreateHostingAccount();
 
   const handleCreateSite = async () => {
-    if (!newSite.name || !newSite.plan) return;
+    if (!newSite.name || newSite.name.length < 3) { toast.error("Site name must be at least 3 characters"); return; }
+    if (!newSite.plan) { toast.error("Please select a plan"); return; }
     await createHosting.mutateAsync({ name: newSite.name, plan: newSite.plan, region: newSite.region || "us-east-1" });
     setNewSite({ name: "", plan: "", region: "" });
     setIsDialogOpen(false);
