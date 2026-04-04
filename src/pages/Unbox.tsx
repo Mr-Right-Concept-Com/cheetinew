@@ -24,6 +24,7 @@ const serviceRoutes: Record<string, string> = {
 const Unbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  usePageMeta("Unbox", "Activate and manage your purchased services");
   const [search, setSearch] = useState("");
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
 

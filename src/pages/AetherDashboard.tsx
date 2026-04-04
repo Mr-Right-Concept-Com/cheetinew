@@ -36,6 +36,7 @@ import { AIDevOpsAgent } from "@/components/dashboard/AIDevOpsAgent";
 import { BladePanel } from "@/components/ui/blade-panel";
 
 const AetherDashboard = () => {
+  usePageMeta("Aether", "Unified command center for infrastructure management");
   const [activeTab, setActiveTab] = useState("overview");
   const [showMigrationWizard, setShowMigrationWizard] = useState(false);
   const [showAIAgent, setShowAIAgent] = useState(false);

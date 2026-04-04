@@ -60,6 +60,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; label
 };
 
 export function GitHubDeploy() {
+  usePageMeta("GitHub Deploy", "Connect GitHub repos and deploy automatically");
   const { user } = useAuth();
   const { data: connection, isLoading: connLoading } = useGitHubConnection();
   const { data: repos, isLoading: reposLoading, refetch: refetchRepos } = useGitHubRepos(!!connection);
