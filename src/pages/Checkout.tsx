@@ -189,29 +189,39 @@ const Checkout = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <Label>Full Name</Label>
+                      <Label>Full Name *</Label>
                       <Input value={billingInfo.fullName} onChange={(e) => setBillingInfo({ ...billingInfo, fullName: e.target.value })} placeholder="John Doe" />
+                      {billingErrors.fullName && <p className="text-xs text-destructive mt-1">{billingErrors.fullName}</p>}
                     </div>
                     <div className="col-span-2">
-                      <Label>Email</Label>
+                      <Label>Email *</Label>
                       <Input value={billingInfo.email} onChange={(e) => setBillingInfo({ ...billingInfo, email: e.target.value })} type="email" />
+                      {billingErrors.email && <p className="text-xs text-destructive mt-1">{billingErrors.email}</p>}
                     </div>
                     <div className="col-span-2">
-                      <Label>Address</Label>
+                      <Label>Address *</Label>
                       <Input value={billingInfo.address} onChange={(e) => setBillingInfo({ ...billingInfo, address: e.target.value })} />
+                      {billingErrors.address && <p className="text-xs text-destructive mt-1">{billingErrors.address}</p>}
                     </div>
                     <div>
-                      <Label>City</Label>
+                      <Label>City *</Label>
                       <Input value={billingInfo.city} onChange={(e) => setBillingInfo({ ...billingInfo, city: e.target.value })} />
+                      {billingErrors.city && <p className="text-xs text-destructive mt-1">{billingErrors.city}</p>}
                     </div>
                     <div>
-                      <Label>ZIP</Label>
+                      <Label>Country *</Label>
+                      <Input value={billingInfo.country} onChange={(e) => setBillingInfo({ ...billingInfo, country: e.target.value })} />
+                      {billingErrors.country && <p className="text-xs text-destructive mt-1">{billingErrors.country}</p>}
+                    </div>
+                    <div>
+                      <Label>ZIP *</Label>
                       <Input value={billingInfo.zip} onChange={(e) => setBillingInfo({ ...billingInfo, zip: e.target.value })} />
+                      {billingErrors.zip && <p className="text-xs text-destructive mt-1">{billingErrors.zip}</p>}
                     </div>
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={() => setStep("review")}>Back</Button>
-                    <Button onClick={() => setStep("payment")} className="flex-1">Continue to Payment</Button>
+                    <Button onClick={handleBillingContinue} className="flex-1">Continue to Payment</Button>
                   </div>
                 </CardContent>
               </Card>

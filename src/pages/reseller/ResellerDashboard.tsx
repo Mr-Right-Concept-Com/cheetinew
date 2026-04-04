@@ -41,17 +41,24 @@ const ResellerDashboard = () => {
   // Get recent clients (last 4)
   const recentClients = clients.slice(0, 4);
 
-  // Get top products by price
+  // Get top products by reseller price (sold count derived from client services)
+  const totalClientServices = clients.reduce((sum, c) => sum + (c.services || 0), 0);
   const topProducts = (products || [])
     .filter(p => p.isActive)
     .sort((a, b) => b.resellerPrice - a.resellerPrice)
     .slice(0, 4)
-    .map(p => ({
-      name: p.name,
-      sold: Math.floor(Math.random() * 30) + 5, // Would come from real sales data
-      revenue: p.resellerPrice * 10,
-      commission: p.resellerPrice * 10 * (p.markupPercentage / 100),
-    }));
+    .map((p, i) => {
+      // Distribute total client services across products proportionally
+      const estimatedSold = totalClientServices > 0
+        ? Math.max(1, Math.round(totalClientServices / ((products || []).filter(pr => pr.isActive).length || 1)))
+        : 0;
+      return {
+        name: p.name,
+        sold: estimatedSold,
+        revenue: p.resellerPrice * estimatedSold,
+        commission: p.resellerPrice * estimatedSold * (p.markupPercentage / 100),
+      };
+    });
 
   if (isLoading) {
     return (
