@@ -37,6 +37,7 @@ const mockLogs = [
 ];
 
 const Hosting = () => {
+  usePageMeta("Hosting", "Manage your web hosting accounts, apps, files, and server resources");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newSite, setNewSite] = useState({ name: "", plan: "", region: "" });
   const [selectedSite, setSelectedSite] = useState<HostingAccount | null>(null);

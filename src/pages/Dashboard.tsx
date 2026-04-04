@@ -16,6 +16,7 @@ import { useUnreadNotificationCount } from "@/hooks/useNotifications";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
+  usePageMeta("Dashboard", "Manage your hosting, cloud, domains, and more from your CheetiHost dashboard");
   const { profile } = useAuth();
   const { data: hostingAccounts, isLoading: hostingLoading } = useHostingAccounts();
   const { data: hostingStats } = useHostingStats();

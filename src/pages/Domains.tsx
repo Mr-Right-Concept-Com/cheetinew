@@ -24,6 +24,7 @@ import { useDomains, useCreateDomain, useDomainStats, useDNSRecords, useCreateDN
 import { format } from "date-fns";
 
 const Domains = () => {
+  usePageMeta("Domains", "Register, transfer, and manage your domain names with DNS and SSL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDNSDialogOpen, setIsDNSDialogOpen] = useState(false);
