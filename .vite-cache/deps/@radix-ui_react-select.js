@@ -1,16 +1,16 @@
 "use client";
 import {
+  createCollection
+} from "./chunk-ELE3GQX6.js";
+import {
   clamp
 } from "./chunk-TCQMTAGU.js";
-import {
-  usePrevious
-} from "./chunk-VVN3GYGW.js";
 import {
   useDirection
 } from "./chunk-Y2ZVGGK4.js";
 import {
-  createCollection
-} from "./chunk-ELE3GQX6.js";
+  usePrevious
+} from "./chunk-VVN3GYGW.js";
 import {
   VISUALLY_HIDDEN_STYLES
 } from "./chunk-QM7T2ZIU.js";
