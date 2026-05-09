@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.github-deploy]
 verify_jwt = false
+
+[functions.create-test-user]
+verify_jwt = false
