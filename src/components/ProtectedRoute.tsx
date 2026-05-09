@@ -18,10 +18,15 @@ export const ProtectedRoute = ({
   requireReseller = false,
   redirectTo = "/auth/login"
 }: ProtectedRouteProps) => {
-  const { user, isLoading, isAdmin, isReseller } = useAuth();
+  const { user, isLoading, isAdmin, isReseller, role } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  // Wait for role to resolve before evaluating role-gated routes
+  if (user && (requireAdmin || requireReseller) && role === null) {
     return <LoadingFallback />;
   }
 
