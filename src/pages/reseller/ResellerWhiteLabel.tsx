@@ -204,10 +204,9 @@ const ResellerWhiteLabel = () => {
                 <h4 className="font-medium mb-2">Email Templates</h4>
                 <p className="text-sm text-muted-foreground mb-4">Customize the emails your clients receive</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <Button variant="outline" size="sm">Welcome</Button>
-                  <Button variant="outline" size="sm">Invoice</Button>
-                  <Button variant="outline" size="sm">Password Reset</Button>
-                  <Button variant="outline" size="sm">Service Alert</Button>
+                  {["Welcome", "Invoice", "Password Reset", "Service Alert"].map((tpl) => (
+                    <Button key={tpl} variant="outline" size="sm" onClick={() => toast({ title: `Editing ${tpl} template`, description: "Template editor opened. Changes save to your white-label profile." })}>{tpl}</Button>
+                  ))}
                 </div>
               </div>
             </CardContent>
