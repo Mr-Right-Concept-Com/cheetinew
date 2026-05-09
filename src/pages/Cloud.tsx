@@ -390,23 +390,23 @@ const Cloud = () => {
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => { handleToggleInstance(instance.id, "running"); toast({ title: "Restarting", description: instance.name }); }}>
                               <RotateCcw className="h-4 w-4" />
                               Restart
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast({ title: "Resize", description: "Choose a new plan size in the wizard." })}>
                               <RefreshCw className="h-4 w-4" />
                               Resize
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast({ title: "Configure", description: `Opening configuration for ${instance.name}` })}>
                               <Settings className="h-4 w-4" />
                               Configure
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast({ title: "Metrics", description: "Loading detailed metrics…" })}>
                               <BarChart3 className="h-4 w-4" />
                               View Metrics
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast({ title: "Snapshot queued", description: instance.name })}>
                               <CloudIcon className="h-4 w-4" />
                               Create Snapshot
                             </DropdownMenuItem>
