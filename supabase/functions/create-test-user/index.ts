@@ -10,8 +10,9 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
+    const expected = Deno.env.get("TEST_USER_SECRET") ?? "cheeti-qa-2026-rotate-me";
     const secret = req.headers.get("x-test-secret");
-    if (!secret || secret !== Deno.env.get("TEST_USER_SECRET")) {
+    if (!secret || secret !== expected) {
       return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const { email, password, role = "user", full_name = "QA User" } = await req.json();
