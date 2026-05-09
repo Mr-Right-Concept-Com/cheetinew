@@ -166,7 +166,7 @@ const Hosting = () => {
                       <Button size="sm" variant="outline" onClick={() => toast.success("Backup started...")}>Backup</Button>
                     </div>
                   </div>
-                  <Button className="gap-1" size="sm"><Plus className="h-3 w-3" /> Create Database</Button>
+                  <Button className="gap-1" size="sm" onClick={() => { const dbName = prompt("Database name:"); if (dbName) toast.success(`Database "${dbName}" created`); }}><Plus className="h-3 w-3" /> Create Database</Button>
                 </CardContent>
               </Card>
             </TabsContent>
