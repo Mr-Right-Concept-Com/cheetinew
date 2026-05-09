@@ -390,23 +390,23 @@ const Cloud = () => {
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => { handleToggleInstance(instance.id, "running"); toast.success(`Restarting ${instance.name}…`); }}>
                               <RotateCcw className="h-4 w-4" />
                               Restart
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast.info("Resize wizard opening — choose a new plan size.")}>
                               <RefreshCw className="h-4 w-4" />
                               Resize
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast.info(`Opening configuration for ${instance.name}`)}>
                               <Settings className="h-4 w-4" />
                               Configure
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast.info("Loading detailed metrics…")}>
                               <BarChart3 className="h-4 w-4" />
                               View Metrics
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
+                            <DropdownMenuItem className="gap-2" onClick={() => toast.success(`Snapshot of ${instance.name} queued.`)}>
                               <CloudIcon className="h-4 w-4" />
                               Create Snapshot
                             </DropdownMenuItem>
