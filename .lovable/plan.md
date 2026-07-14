@@ -1,167 +1,111 @@
-# CheetiHost Batch 2-5 Implementation Plan
+# CheetiHost — Competitor Parity + Monzo-Style Redesign
 
-## Audit Findings
+Goal: Match/exceed Spaceship, Hostinger, and Hosting.com on features and flows, while giving every surface a Monzo-grade UX (bold color, oversized numbers, calm hierarchy, playful micro-interactions, card-first mobile-native layouts).
 
-After reviewing all pages, here are the critical gaps vs Hostinger/Spaceship/Namecheap:
-
-**Hosting page**: No tabbed management, no one-click apps, no file manager, no SSH credentials, no PHP selector, no resource charts, no cron jobs. Buttons just show toasts.
-
-**Domains page**: No DNS record creation dialog (Add Record button has no onClick), no bulk transfer, no nameserver config form, no WHOIS toggle that persists, domain actions are toast-only.
-
-**Billing page**: "Add Payment Method" button has no form, "Change Plan" shows toast only, no invoice PDF, no promo codes, no transaction history filtering.
-
-**Email page**: Inbox tab just lists mailboxes again, no compose, forwarding tab is empty placeholder, spam tab has non-functional toggle. Dropdown items (Settings, Forwarding, Spam Rules, Delete) have no onClick handlers.
-
-**Security page**: No WAF toggle, no IP blocklist, 2FA button non-functional, no security scan, "View Report" button non-functional.
-
-**Support page**: "Start Chat" button non-functional, ticket "View" button does nothing, knowledge base articles non-clickable, video tutorials are placeholder boxes.
-
-**Website Builder**: Template category tabs only show "all" content (other tabs render nothing), "Preview"/"Use" buttons non-functional, "Create from Scratch" non-functional, "Try Cheeti AI" non-functional.
-
-**Notifications**: Category tabs work but mapping may be incomplete. Clear All deletes ALL notifications (should only clear read ones with confirmation).
-
-**Settings page**: Missing API keys section, missing connected services, missing delete account.
-
-**Dashboard**: Missing onboarding wizard for new users with no data.
+This is a large multi-phase build. I'll ship it in ordered phases so you get value each cycle instead of one giant unreviewable drop.
 
 ---
 
-## Implementation Plan (Batches 2-5)
+## Phase 0 — Research capture (I do this before any code)
 
-### BATCH 2: Hosting + Domains Deep Management
+Deep-crawl each competitor with Firecrawl and archive structured notes:
 
-**Hosting.tsx (~600 lines rewrite):**
+- **Spaceship.com** — domains, Unbox, email, hosting, DNS, transfers, pricing UI
+- **Hostinger.com** — hPanel dashboard, AI website builder, hosting plans, VPS, email, onboarding
+- **Hosting.com** — cPanel wrapper, managed WP, cloud, migrations, support flows
 
-- Add tabbed interface per hosting account: Overview | Apps | Files | Databases | SSH/SFTP | PHP | Cron Jobs | Logs
-- **One-Click Apps tab**: Grid of app cards (WordPress, Laravel, Node.js, Ghost, Joomla, Drupal) with "Install" buttons that call a toast + create audit log
-- **File Manager tab**: Mock directory tree UI with breadcrumb, file list table (name, size, date, permissions), upload/download/delete buttons
-- **SSH/SFTP tab**: Credentials display card (host, port, username) with copy-to-clipboard buttons
-- **PHP Version tab**: Dropdown selector (7.4, 8.0, 8.1, 8.2, 8.3) with "Apply" button
-- **Resource Charts**: CPU, RAM, Disk, Bandwidth area charts using Recharts with mock time-series data
-- **Cron Jobs tab**: Table of cron jobs with schedule/command columns, add/delete functionality
-- **Access Logs tab**: Scrollable log viewer with date/IP/request/status columns
-- Wire dropdown buttons to real edge function calls or meaningful actions
+Deliverable: `/docs/competitor-audit.md` — feature matrix (Have / Partial / Missing) mapped to CheetiHost pages + screenshots of each competitor's key screens.
 
-**Domains.tsx (~650 lines rewrite):**
+---
 
-- **Add DNS Record dialog**: Type selector (A, AAAA, CNAME, MX, TXT, NS, SRV), Name, Value, TTL, Priority inputs with validation, calls Supabase insert on `dns_records`
-- **Bulk Transfer tab**: Textarea for multiple domains with auth codes, process button
-- **Nameserver config form**: Editable ns1-ns4 inputs per domain, Save button updates `domains.nameservers`
-- **WHOIS privacy toggle**: Switch component that calls Supabase update on `domains.privacy_enabled`
-- **Auto-renew toggle**: Same pattern for `domains.auto_renew`
-- **Domain lock toggle**: Confirmation dialog, updates `domains.transfer_lock`
-- **Renew button**: Dialog with renewal period selector (1/2/3/5 years)
+## Phase 1 — Monzo-style design system refresh
 
-### BATCH 3: Billing + Email + Security
+Rebuild the visual layer only (no logic changes):
 
-**Billing.tsx enhancements:**
+- **Tokens (`index.css`)** — keep Cheeti Gold + Digital Blue, but add Monzo-style semantic surfaces: `--surface-hot` (coral/red for alerts), `--surface-cool` (mint for success), `--surface-cash` (soft neutral cards), heavier radii (1rem–1.5rem), softer shadows, generous 24–32px spacing scale.
+- **Typography** — display font for oversized balances/metrics (numbers dominate cards, Monzo signature), Inter for body. Tabular numerals on all monetary/stat values.
+- **New primitives** (`src/components/ui/monzo/`):
+  - `BalanceCard` — huge number, tiny label, colored pill trend
+  - `PotCard` — rounded service tile (Hosting / Domains / Email / Cloud) with progress ring
+  - `ActivityRow` — feed-style transaction/event row with avatar circle
+  - `ActionSheet` — bottom-sheet on mobile, side-panel on desktop (replaces most modals)
+  - `SegmentedTabs`, `SwipeableCarousel`, `PullRefresh`
+- **Motion** — spring-based entrance on cards, number count-up on load, haptic-like tap feedback (scale 0.97).
+- **Mobile-first** — every dashboard reflows to a single-column feed under 768px (current preview is 360×584).
 
-- **Add Payment Method dialog**: Form with card type, last four, expiry month/year, brand. Inserts into `payment_methods` table
-- **Change Plan dialog**: Shows current plan vs available plans from `plans` table with feature comparison, confirm button updates subscription
-- **Invoice PDF**: Generate printable invoice view (window.print() approach) or HTML-based download
-- **Promo code input**: Text field with "Apply" button (validates against system_settings or a codes table)
-- **Transaction history tab**: Pull from `transactions` table with date range filter and status filter
+Deliverable: refreshed tokens + primitive library + one converted page (Dashboard) as the reference implementation.
 
-**Email.tsx enhancements:**
+---
 
-- **Inbox tab**: Demo inbox UI with mock messages (sender, subject, snippet, date) with info banner "Full webmail via your mail provider"
-- **Compose dialog**: To, CC, Subject, Body fields with Send button
-- **Forwarding tab**: Table showing forwarding rules per mailbox with add/edit/delete. Updates `email_accounts.forwarding_address` and `forwarding_enabled`
-- **Autoresponder tab**: Enable toggle, subject, message, date range fields. Updates `email_accounts.autoresponder_*` fields
-- **Spam filter tab**: Radio group (Low/Medium/High/Custom) per mailbox. Updates `email_accounts.spam_filter_level`
-- Wire all dropdown menu items to real actions
+## Phase 2 — User dashboard (feature parity + redesign)
 
-**Security.tsx enhancements:**
+Redesign + fill gaps on every user-facing page:
 
-- **WAF toggle**: Switch that persists to `system_settings` key "waf_enabled"
-- **Security scan button**: Creates audit_log entry with action "security.scan", shows mock scan results
-- **IP Blocklist tab**: Add IP input + list of blocked IPs stored in `system_settings` key "ip_blocklist"
-- **2FA setup**: Multi-step dialog (show QR code placeholder, verify code input, enable)
-- **Login activity tab**: Enhanced view from `audit_logs` filtered by action "auth.*"
-- Wire "View Report" and "Renew" SSL buttons
 
-### BATCH 4: Support + Notifications + Website Builder
+| Page                | Competitor features to add                                                                                                                                  |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard**       | Hostinger-style "next best action" cards, uptime feed, quick-actions grid                                                                                   |
+| **Hosting**         | One-click apps expansion (WordPress, Woo, Joomla, Ghost, Laravel), staging environments, Git deploy, LiteSpeed cache toggle, PHP version switcher, SSH keys |
+| **Domains**         | Spaceship Unbox-style bundle view, bulk DNS editor, domain forwarding, WHOIS privacy toggle, transfer-in wizard, auction/aftermarket search                 |
+| **Email**           | Titan/Hostinger-style webmail preview, aliases, forwarders, autoresponders, catch-all, spam controls, DKIM/SPF/DMARC one-click                              |
+| **Cloud/VPS**       | Hostinger KVM plans, OS templates, snapshots, firewall rules, monitoring graphs, console access, backups schedule                                           |
+| **Website Builder** | Hostinger Horizons–style AI prompt → site, template gallery, section editor                                                                                 |
+| **Backups**         | Daily/weekly/monthly retention, restore points timeline, download .tar.gz                                                                                   |
+| **Security**        | 2FA, login history, active sessions, IP allowlist, Malware/Monarx-style scan results                                                                        |
+| **Billing**         | Monzo-style transaction feed, upcoming charges timeline, invoice PDFs, credit balance, referral credit                                                      |
+| **Support**         | AI first-response (Kodee-style), ticket threads, live chat widget, knowledge-base search                                                                    |
+| **Onboarding**      | Hostinger 5-step wizard: goal → plan → domain → template/app → deploy                                                                                       |
 
-**Support.tsx enhancements:**
 
-- **"Start Chat" button**: Opens CheetiAI component in expanded mode (or scrolls to embedded chat)
-- **Ticket "View" button**: Expands ticket into detail view showing `ticket_messages` thread with reply form
-- **Knowledge base articles**: Clickable, opens detail view with article content
-- **Video tutorials**: "Watch" button opens modal with embedded video placeholder and description
+---
 
-**Notifications.tsx fixes:**
+## Phase 3 — Admin dashboard
 
-- Fix category mapping to match actual `notifications.category` values in DB
-- "Clear All" should only delete read notifications with confirmation dialog
-- Add notification preferences section (email/push toggles per category stored in system_settings)
+- Investor metrics hero (ARR, MRR, churn, LTV/CAC) as oversized Monzo balance cards
+- User growth feed (activity stream)
+- Hosting/Domain/Email/Cloud management: bulk actions, filters, saved views
+- Panel connections manager (cPanel/Plesk/Hostinger/Spaceship) with health pings
+- Payment gateway toggles with live status
+- Role management + audit log timeline
+- System settings, SMTP tester, feature flags
 
-**WebsiteBuilder.tsx enhancements:**
+---
 
-- Wire category tab filtering (Business/Portfolio/Shop/Blog/Marketing tabs filter template list)
-- "Preview" button: Opens dialog with full-size template preview
-- "Use Template" button: Creates hosting account pre-configured with template name
-- "Create from Scratch": Opens dialog asking for site name + domain, creates hosting account
-- "Try Cheeti AI": Opens input prompt "Describe your website", generates template recommendation
-- Add "My Sites" section showing user's builder sites from hosting_accounts
+## Phase 4 — Reseller dashboard
 
-### BATCH 5: Onboarding + Command Palette + Global Polish
+- White-label config with live preview (Hostinger Reseller Cloud parity)
+- Client management: create/suspend/upgrade, impersonate
+- Products & pricing markup editor
+- Commissions feed + payout requests ($100 threshold already exists)
+- Custom domain + email templates (welcome / invoice / reset / alert — already wired)
 
-**OnboardingWizard component:**
+---
 
-- Shows for users with 0 hosting accounts + 0 domains + 0 cloud instances
-- Step 1: "What do you want to do?" (Build website / Register domain / Set up email / Deploy from GitHub)
-- Step 2: Redirects to relevant page
-- "Skip" + "Don't show again" (localStorage flag)
-- Render in Dashboard.tsx when conditions met
+## Phase 5 — Cross-cutting
 
-**CommandPalette.tsx enhancement:**
+- **PWA polish** — installable, offline shell, push notifications
+- **Command palette** (⌘K) — already exists; expand actions to cover every new feature
+- **Cheeti AI** — context-aware suggestions per page (already wired; extend prompts)
+- **i18n scaffold** — English default, structure ready for more locales
+- **SEO/meta** — real titles + descriptions per public page
 
-- Add categories: Navigation, Services, Actions
-- Add recent pages section
-- Add domain/hosting account search results
+---
 
-**Global fixes:**
+## Technical notes
 
-- Copyright year to 2026 in footer
-- Wire remaining non-functional buttons across all pages
-- Add About Us, Contact, Careers, Blog, Status pages as "Coming Soon" with real routes
+- All new UI uses semantic tokens; no hardcoded colors.
+- New primitives live under `src/components/ui/monzo/` and are additive — existing shadcn components stay.
+- Data comes from existing Supabase tables + edge functions; no schema changes required for Phase 1–2. Phases 3–5 may add: `staging_environments`, `ssh_keys`, `firewall_rules`, `snapshots`, `activity_feed` (I'll flag before adding).
+- Panel adapters (cPanel/Plesk/Hostinger/Spaceship) already exist — new features route through them in `mode: 'test'` until real credentials are set.
+- Feature flags gate anything not fully wired so nothing ships as a dead button.
 
-### File Changes Summary
+---
 
-**Modified files (14):**
+## Scope decision I need from you
 
-- `src/pages/Hosting.tsx` - Full tabbed management rebuild
-- `src/pages/Domains.tsx` - DNS dialog, bulk transfer, nameserver config
-- `src/pages/Billing.tsx` - Payment form, plan change dialog, invoice PDF
-- `src/pages/Email.tsx` - Inbox demo, compose, forwarding, autoresponder, spam
-- `src/pages/Security.tsx` - WAF, IP blocklist, 2FA, scan, login activity
-- `src/pages/Support.tsx` - Chat integration, ticket threading, KB articles
-- `src/pages/Notifications.tsx` - Category fix, clear all fix, preferences
-- `src/pages/WebsiteBuilder.tsx` - Template filtering, preview, site creation
-- `src/pages/Dashboard.tsx` - Onboarding wizard integration
-- `src/components/CommandPalette.tsx` - Categories, search enhancement
-- `src/pages/Landing.tsx` - Footer copyright fix
-- `src/App.tsx` - Add company page routes
+This is roughly a 5-phase build. Two questions before I start:
 
-**New files (8):**
+1. **Order** — start with Phase 1 (design system + one reference page) so you can approve the look before I roll it across every page? Or do you want me to redesign + refactor all user pages in one sweep? Yes into one sweep 
+2. **Competitor emphasis** — equal weight across all three, or lean hardest on one (Spaceship's Unbox/domain UX is the most differentiated; Hostinger has the deepest feature surface; Hosting.com is the most cPanel-traditional)? All three in parallel 
 
-- `src/components/OnboardingWizard.tsx`
-- `src/components/hosting/OneClickApps.tsx`
-- `src/components/hosting/FileManager.tsx`
-- `src/components/hosting/CronManager.tsx`
-- `src/components/hosting/ResourceCharts.tsx`
-- `src/components/billing/AddPaymentMethodDialog.tsx`
-- `src/components/billing/ChangePlanDialog.tsx`
-- `src/components/email/ComposeDialog.tsx`
-
-### Execution Order
-
-1. **Batch 2**: Hosting tabs + Domains DNS/transfer (highest impact on competitor parity)
-2. **Batch 3**: Billing forms + Email webmail + Security WAF
-3. **Batch 4**: Support threading + Notifications fix + Builder
-4. **Batch 5**: Onboarding + Command palette + polish
-  &nbsp;
-5. Also Add The spaceship  Unbox feature  ( Bring it all together
-6. Unbox™ automatically activates as part of your purchase setup, swiftly getting your products ready to launch and manage.)
-
-&nbsp;
+Once you answer, I'll approve-and-build Phase 1,2,3 immediately in parallel delegate task to sub agents 
