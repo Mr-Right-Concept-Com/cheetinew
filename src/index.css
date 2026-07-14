@@ -2,103 +2,149 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* CheetiHost design system — Monzo-inspired.
+   All colors HSL. All tokens semantic. Never hardcode colors in components. */
 
 @layer base {
   :root {
-    /* CheetiHost Brand Colors - Light Mode */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 12%;
+    --background: 30 20% 98%;
+    --foreground: 240 10% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 12%;
+    --card-foreground: 240 10% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 12%;
+    --popover-foreground: 240 10% 8%;
 
-    /* Cheeti Gold - Primary Brand Color */
     --primary: 42 97% 49%;
-    --primary-foreground: 0 0% 12%;
+    --primary-foreground: 240 10% 8%;
     --primary-glow: 42 97% 60%;
 
-    /* Deep Graphite - Secondary */
-    --secondary: 0 0% 12%;
+    --secondary: 240 10% 8%;
     --secondary-foreground: 0 0% 98%;
 
-    /* Digital Blue - Accent */
     --accent: 195 100% 47%;
-    --accent-foreground: 0 0% 12%;
+    --accent-foreground: 240 10% 8%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 240 6% 95%;
+    --muted-foreground: 240 4% 42%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 4 90% 58%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
+    --success: 152 68% 42%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 32 100% 55%;
+    --warning-foreground: 240 10% 8%;
+
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 98%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
     --ring: 42 97% 49%;
 
-    --radius: 0.75rem;
+    --radius: 1.25rem;
 
-    /* Custom Brand Tokens */
+    /* Monzo-style semantic surfaces (soft tinted cards) */
+    --surface-hot: 4 90% 96%;
+    --surface-hot-foreground: 4 90% 35%;
+    --surface-cool: 152 68% 94%;
+    --surface-cool-foreground: 152 68% 25%;
+    --surface-cash: 240 6% 96%;
+    --surface-cash-foreground: 240 10% 8%;
+    --surface-gold: 42 97% 94%;
+    --surface-gold-foreground: 42 97% 28%;
+    --surface-blue: 195 100% 94%;
+    --surface-blue-foreground: 195 100% 25%;
+    --surface-lilac: 262 83% 95%;
+    --surface-lilac-foreground: 262 83% 35%;
+    --surface-coral: 14 100% 94%;
+    --surface-coral-foreground: 14 90% 40%;
+
+    /* Brand aliases (kept for backward compatibility) */
     --cheeti-gold: 42 97% 49%;
     --cheeti-gold-light: 42 97% 60%;
     --cheeti-gold-dark: 42 97% 40%;
     --digital-blue: 195 100% 47%;
-    --deep-graphite: 0 0% 12%;
+    --deep-graphite: 240 10% 8%;
+
     --speed-gradient: linear-gradient(135deg, hsl(var(--cheeti-gold)) 0%, hsl(var(--digital-blue)) 100%);
     --hero-gradient: linear-gradient(135deg, hsl(var(--deep-graphite)) 0%, hsl(var(--deep-graphite)) 50%, hsl(var(--cheeti-gold) / 0.1) 100%);
-    
-    /* Shadows */
-    --shadow-glow: 0 0 40px hsl(var(--cheeti-gold) / 0.3);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--deep-graphite) / 0.2);
+    --gradient-warmth: linear-gradient(135deg, hsl(14 100% 62%) 0%, hsl(42 97% 55%) 100%);
+    --gradient-cool: linear-gradient(135deg, hsl(195 100% 47%) 0%, hsl(262 83% 58%) 100%);
+    --gradient-fresh: linear-gradient(135deg, hsl(152 68% 42%) 0%, hsl(195 100% 47%) 100%);
 
-    /* Animations */
+    --shadow-glow: 0 0 40px hsl(var(--cheeti-gold) / 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--deep-graphite) / 0.15);
+    --shadow-pot: 0 20px 40px -20px hsl(var(--deep-graphite) / 0.2);
+    --shadow-float: 0 4px 20px -4px hsl(var(--deep-graphite) / 0.08);
+
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-spring: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   .dark {
-    /* CheetiHost Brand Colors - Dark Mode (Default) */
-    --background: 0 0% 8%;
+    --background: 240 12% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 12%;
+    --card: 240 10% 11%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 12%;
+    --popover: 240 10% 11%;
     --popover-foreground: 0 0% 98%;
 
-    /* Cheeti Gold - Primary Brand Color */
-    --primary: 42 97% 49%;
-    --primary-foreground: 0 0% 12%;
-    --primary-glow: 42 97% 60%;
+    --primary: 42 97% 55%;
+    --primary-foreground: 240 12% 7%;
+    --primary-glow: 42 97% 65%;
 
-    /* Deep Graphite - Secondary */
-    --secondary: 0 0% 16%;
+    --secondary: 240 8% 16%;
     --secondary-foreground: 0 0% 98%;
 
-    /* Digital Blue - Accent */
-    --accent: 195 100% 47%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 195 100% 55%;
+    --accent-foreground: 240 12% 7%;
 
-    --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 240 8% 16%;
+    --muted-foreground: 240 5% 65%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 4 90% 62%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 42 97% 49%;
+    --success: 152 60% 48%;
+    --success-foreground: 240 12% 7%;
 
-    /* Enhanced Dark Mode Gradients */
+    --warning: 32 100% 60%;
+    --warning-foreground: 240 12% 7%;
+
+    --info: 217 91% 65%;
+    --info-foreground: 240 12% 7%;
+
+    --border: 240 8% 20%;
+    --input: 240 8% 20%;
+    --ring: 42 97% 55%;
+
+    --surface-hot: 4 60% 18%;
+    --surface-hot-foreground: 4 90% 85%;
+    --surface-cool: 152 50% 15%;
+    --surface-cool-foreground: 152 68% 85%;
+    --surface-cash: 240 8% 14%;
+    --surface-cash-foreground: 0 0% 98%;
+    --surface-gold: 42 60% 15%;
+    --surface-gold-foreground: 42 97% 85%;
+    --surface-blue: 195 60% 15%;
+    --surface-blue-foreground: 195 100% 85%;
+    --surface-lilac: 262 40% 20%;
+    --surface-lilac-foreground: 262 83% 88%;
+    --surface-coral: 14 60% 20%;
+    --surface-coral-foreground: 14 100% 88%;
+
     --hero-gradient: linear-gradient(135deg, hsl(var(--deep-graphite)) 0%, hsl(0 0% 10%) 50%, hsl(var(--cheeti-gold) / 0.15) 100%);
     --speed-gradient: linear-gradient(135deg, hsl(var(--cheeti-gold)) 0%, hsl(var(--digital-blue)) 100%);
     --shadow-glow: 0 0 60px hsl(var(--cheeti-gold) / 0.4);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
+    --shadow-pot: 0 20px 40px -20px hsl(0 0% 0% / 0.6);
+    --shadow-float: 0 4px 20px -4px hsl(0 0% 0% / 0.35);
   }
 }
 
@@ -109,5 +155,27 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+
+  /* Monzo signature: tabular numerals on money/metrics */
+  .tabular-nums,
+  .balance {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+@layer components {
+  .monzo-card {
+    @apply rounded-[1.5rem] bg-card border border-border/60 transition-all;
+    box-shadow: var(--shadow-float);
+  }
+  .monzo-card:hover {
+    box-shadow: var(--shadow-pot);
+    transform: translateY(-2px);
+  }
+  .monzo-tap {
+    @apply transition-transform active:scale-[0.97];
   }
 }
